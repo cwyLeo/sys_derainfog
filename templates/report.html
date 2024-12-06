@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Report with Images</title>
+</head>
+<body>
+    <h1>PDF with Images</h1>
+    {% for image in images %}
+        <img src="{{ url_for('static/results', filename=image) }}" alt="Image">
+    {% endfor %}
+</body>
+</html>

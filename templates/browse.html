@@ -1,0 +1,215 @@
+<!-- {% extends "bootstrap/base.html" %} -->
+{% block title %}去雨去雾系统原型{% endblock %}
+{% block content %}
+
+<h2 style="text-align: center;">去雨去雾系统原型</h2>
+<nav id="navbar" class="navbar navbar-light bg-light">
+    <div class="container-fluid">
+        <div class="flex-navbar btn-group">
+            <a href="{{ url_for ('process') }}" class="flex-btn" data-target="imageInputForm">图片输入</a>
+            <a href="#" class="flex-btn active" data-target="imageNameLibrary">图片名称库</a>
+            <a href="{{ url_for ('toalg') }}" class="flex-btn" data-target="AlgNameLibrary">算法名称库</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message|safe }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<label class="radio-inline" style="margin-left: 5px;">
+    <input type="radio" name="imageAction" value="defog" checked> 去雾
+</label>
+<label class="radio-inline">
+    <input type="radio" name="imageAction" value="derain"> 去雨
+</label>
+    <form action="/upload" method="post" enctype="multipart/form-data" class="form-horizontal" style="margin-top: 10px;margin:5px auto;">
+        <div class="form-group">
+            <div class="col-lg-12">
+                <!-- 原始图片输入保持不变 -->
+                <input id="lefile3" type="file" style="display:none;" name="file">
+                <div class="input-group">
+                    <input id="photoCover3" class="form-control input-lg" type="text"
+                           style="height:34px;width:100%;border:2px #337ab7 solid"
+                           placeholder="请选择需要上传的文件或文件夹对应的压缩包">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" style="margin:0 5px ;" type="button" onclick="$('#lefile3').click();">浏览</button>
+                        <button type="submit" class="btn btn-primary">上传</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="file-browser">
+        <div>
+            {% if path != '.' %}
+                <a href="{{ url_for('browse', path=parent_path) }}">返回上一级</a>
+            {% endif %}
+        </div>
+        <ul class="file-browser">
+            {% for item in items %}
+                {% if item.is_dir %}
+                    <li style="display: block; align-items: center; text-align: center; position: relative;">
+                        <img src="{{ url_for('download', path='show/box.png') }}" class="image-file" style="height: 10em; width: auto; display: block; align-items: center; margin: auto;">
+                        <a href="{{ url_for('browse', path=item.path) }}">{{ item.name }}/</a>
+                        <button type="button" class="btn play-button" onclick="index('{{ item.path }}')"></button>
+                    </li>
+                {% else %}
+                <li style="display: block; align-items: center; text-align: center; position: relative;">
+                    {% if item.mime_type.startswith('image/') %}
+                        <img src="{{ url_for('download', path=item.path) }}" alt="{{ item.name }}" id="image-{{ loop.index }}" class="image-file" style="height: 10em; width: auto; display: block; align-items: center; margin: auto;">
+                        <!-- <span style="height: 5em; line-height: 5em;">{{ item.name }}</span> -->
+                    {% elif item.mime_type.endswith('python') %}
+                        <img src="{{ url_for('download', path='show/python.jpg') }}" alt="{{ item.name }}" id="image-{{ loop.index }}" class="image-file" style="height: 10em; width: auto; display: block; align-items: center; margin: auto;">
+                        <!-- <span style="height: 5em; line-height: 5em;">{{ item.name }}</span> -->
+                    {% else %}
+                    <img src="{{ url_for('download', path='show/undefined.png') }}" alt="{{ item.name }}" id="image-{{ loop.index }}" class="image-file" style="height: 10em; width: auto; display: block; align-items: center; margin: auto;">
+                    {% endif %}
+                    <a style="height: 5em; text-align: center;" href="{{ url_for('download', path=item.path) }}">{{ item.name }}</a>
+                    <button type="button" class="btn play-button" onclick="index('{{ item.path }}')"></button>
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<div id="piliang" class="container2 piliang">
+<div class="well">
+    <H3>entropy</H3>
+    <img id="image1" src="{{ url_for('static', filename='results/entropy.png') }}" width="300px" height="300px"/>
+</div>
+<div class="well">
+    <H3>mg</H3>
+    <img id="image2" src="{{ url_for('static', filename='results/mg.png') }}" width="300px" height="300px"/>
+</div>
+<div class="well">
+    <H3>complexities</H3>
+    <img id="image3" src="{{ url_for('static', filename='results/complexity.png') }}" width="300px" height="300px"/>
+</div>
+<div class="well">
+    <h3>time</h3>
+    <img id="image4" src="{{ url_for('static', filename='results/time_used.png') }}" width="300px" height="300px"/>
+</div>
+</div>
+ {% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    document.getElementById('lefile3').addEventListener('change', function () {
+        var file = this.files[0]
+        document.getElementById('photoCover3').value = file.name;
+    });
+    function index(filename) {
+        var actionOption = document.querySelector('input[name="imageAction"]:checked').value;
+        // 创建一个 FormData 对象
+        console.log(filename)
+        var formData = new FormData();
+        // 添加文件名到 FormData
+        arrayM = '{{ items|tojson|safe }}';
+        arrayM = JSON.parse(arrayM)
+        formData.append('items',JSON.stringify(arrayM));
+        formData.append('path',"{{ path }}");
+        formData.append('parent_path',"{{ parent_path }}");
+        formData.append('filename', filename);
+        formData.append('imageAction',actionOption);
+        // 发送 POST 请求到 /call_index 路由
+        fetch('/index', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(html => {
+                document.body.innerHTML = html
+        });
+        // .catch(error => console.error(error));
+}
+</script>
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"> -->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='base.css') }}">
+<style>
+    .file-browser {
+        margin-top: 20px;
+    }
+    .file-browser ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    .file-browser ul li {
+        margin: 5px;
+    }
+    .file-browser ul li a {
+        text-decoration: none;
+        color: #333;
+    }
+    .file-browser ul li a:hover {
+        color: #007bff;
+    }
+    .image-file {
+        margin: 5px;
+        object-fit:contain; /* 保持图片比例 */
+    }
+    .image-height {
+        height: 5em; /* 或者其他固定高度 */
+        line-height: 5em; /* 确保行内元素垂直居中 */
+    }
+    .file-browser {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+}
+
+.file-browser li {
+    /* display: flex; */
+    align-items: center;
+    margin: 10px;
+}
+
+.file-browser .file-icon {
+    margin-right: 10px;
+}
+
+.file-browser img.image-file {
+    max-height: 6em; /* 或者你想要的高度 */
+    width: auto;
+}
+
+.file-browser span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px; /* 或者你想要的最大宽度 */
+}
+.image-file {
+    display: block; /* 确保图片不与按钮重叠 */
+    width: auto; /* 或具体的宽度值 */
+    height: auto; /* 或具体的高度值 */
+}
+
+.play-button {
+    padding: 10px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+}
+.play-button::after {
+    content: '►';
+    font-size: 10px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 4px 8px;
+    border-radius: 5px;
+}
+.piliang {
+    visibility: hidden;
+}
+.active {
+    visibility: visible;
+}
+</style>
+{% endblock %}
