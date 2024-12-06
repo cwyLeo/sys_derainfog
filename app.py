@@ -180,7 +180,7 @@ def create_pdf_with_images(a,b,combined_list, output_filename):
         i += 1
         c.drawImage(image_path, x, y, width=image_width*scale, height=image_height*scale)
     c.save()
-    return send_file(output_filename,as_attachment=True)
+    return send_file('static/uploads_main/'+output_filename,as_attachment=True)
 
 @app.route('/pdf/<filename>')
 def pdf_file(filename):
@@ -333,8 +333,8 @@ def index():
             processed_image_list,pjs,combined_list = process_image(image_folder,image_action)
 
             create_pdf_with_images(a=processed_image_list,b=pjs,combined_list=combined_list,output_filename='test.pdf')
-            subprocess.Popen("test.pdf", shell=True)
-            webbrowser.open('test.pdf')
+            # subprocess.Popen(os.path.join(uploadDir,"test.pdf"), shell=True)
+            webbrowser.open(os.path.join(uploadDir,"test.pdf"))
         else:
             files = os.listdir(image_folder)
             if len(files) == 2 and 'gt' in files and 'hazy' in files:
@@ -342,8 +342,8 @@ def index():
             processed_image_list,pjs,combined_list = process_image(image_folder,image_action)
 
             create_pdf_with_images(a=processed_image_list,b=pjs,combined_list=combined_list,output_filename='test.pdf')
-            subprocess.Popen("test.pdf", shell=True)
-            webbrowser.open('test.pdf')
+            # subprocess.Popen(os.path.join(uploadDir,"test.pdf"), shell=True)
+            webbrowser.open(os.path.join(uploadDir,"test.pdf"))
     # return response
     # pdf_url = url_for('create_pdf_with_images')
     flash(f'{image_folder.split('\\')[-1]} successfully completed!','success')
