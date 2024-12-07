@@ -13,7 +13,7 @@ import time
 import os
 import argparse
 #Models lib
-from models import *
+from net import *
 #Metrics lib
 # from metrics import calc_psnr, calc_ssim
 
