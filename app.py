@@ -342,6 +342,10 @@ def process_image(image_folder,image_action,gt_path=''):
     combined_list = {'ori':[]}
     if os.path.isdir(image_folder):
         filenames = os.listdir(image_folder)
+        if filenames[0] in ['gt','hazy'] and os.path.isdir(os.path.join(image_folder,filenames[0])):
+            image_folder = os.path.join(image_folder,'hazy')
+            gt_path = os.path.join(image_folder,'gt')
+            filenames = os.listdir(image_folder)
     else:
         filenames = [image_folder]
     for image_filename in filenames:
@@ -407,6 +411,8 @@ def process_image(image_folder,image_action,gt_path=''):
             time_end = time.time()
             value_mg = 0
             value_en = 0
+            value_psnr = 0
+            value_ssim = 0
             for index,output in enumerate(outputs):
                 tmp = filenames[index].split('.')[0].split('\\')[-1]
                 tmp2 = filenames[index].split('.')[-1]
@@ -422,10 +428,16 @@ def process_image(image_folder,image_action,gt_path=''):
                 combined_list[mod].append(deep_path)
                 value_mg += calculate_mg(output)
                 value_en += calculate_entropy(output)
+                if gt_path != '':
+                    value_psnr += calculate_psnr(imageGT,output)
+                    value_ssim += calculate_ssim(imageGT,output)
             pjs['entropy'].append(value_en/len(outputs))
             pjs['mg'].append(value_mg/len(outputs))
             pjs['complexity'].append(complexity)
             pjs['time_used'].append(round(time_end - time_begin,3))
+            if gt_path != '':
+                pjs['psnr'].append(value_psnr/len(outputs))
+                pjs['ssim'].append(value_ssim/len(outputs))
             keys.append(mod)
             alg_list.append(re.split(r'_image',mod)[0])
             # if gt_path != '':
