@@ -356,3 +356,9 @@ def crop_to_original_size(padded_image, original_size):
     
     # 裁剪图像
     return padded_image[:, :, crop_height_start:crop_height_end, crop_width_start:crop_width_end]
+
+def calculate_metrics(image,imageGT=None):
+    if imageGT is None:
+        return calculate_entropy(image),calculate_mg(image)
+    else:
+        return calculate_entropy(image),calculate_mg(image),calculate_psnr(image,imageGT),calculate_ssim(image,imageGT)

@@ -127,17 +127,6 @@ def create_pdf_with_images(a,b,combined_list, output_filename):
                 j = 0
             else:
                 j += 1
-            # if y < 0:
-            #     c.showPage()
-            #     c.setFont("Helvetica", 12)  # 设置字体和大小
-            #     text_width = c.stringWidth(key, "Helvetica", 12)  # 计算文本宽度
-            #     text_x = start_x + col_index * (scaled_width + spacing) + (max_width_per_image - text_width) / 2  # 计算文本的x坐标以居中
-            #     text_y = page_height - 20  # 20是文本距离页面顶部的距离
-            #     c.drawString(text_x, text_y, key)  # 绘制居中的文本
-            #     y = page_height - 20 - text_height - spacing - scaled_height
-            #     j = 0
-            # else:
-            #     j += 1
 
             # 绘制图片
             c.drawImage(image_path, x, y, width=scaled_width, height=scaled_height)
@@ -210,20 +199,14 @@ def process():
                         uploadpathGT = os.path.join(uploadGTDir, filenameGT)
                         f_gt.save(uploadpathGT)
                         imageGT = cv_imread(uploadpathGT)
-                        value_psnr = calculate_psnr(image,imageGT)
-                        value_ssim = calculate_ssim(imageGT,image)
-                        value_mg = calculate_mg(image)
-                        value_en = calculate_entropy(image)
-                        value_psnr_gt = calculate_psnr(imageGT,imageGT)
-                        value_ssim_gt = calculate_ssim(imageGT,imageGT)
-                        value_mg_gt = calculate_mg(imageGT)
-                        value_en_gt = calculate_entropy(imageGT)
+                        value_en,value_mg,value_psnr,value_ssim = calculate_metrics(image,imageGT)
+                        value_en_gt,value_mg_gt,value_psnr_gt,value_ssim_gt = calculate_metrics(imageGT,imageGT)
                         image_list = [
                             {'name':'origin','filename':filename,'scores':{'PSNR':value_psnr,'SSIM':value_ssim,'MG':value_mg,'Entropy':value_en}},
                             {'name':'ground_truth','filename':filenameGT,'scores':{'PSNR':value_psnr_gt,'SSIM':value_ssim_gt,'MG':value_mg_gt,'Entropy':value_en_gt}}
                         ]
-                        entropy = [calculate_entropy(image),calculate_entropy(imageGT)]
-                        mg = [calculate_mg(image),calculate_mg(imageGT)]
+                        entropy = [value_en,value_en_gt]
+                        mg = [value_mg,value_mg_gt]
                         complexities = [0,0]
                         time_used = [0,0]
                         psnr = [value_psnr,value_psnr_gt]
@@ -276,8 +259,7 @@ def process():
                                 tmp3 = filename.split('.')[-1]
                                 f.write(cv2.imencode(f'.{tmp3}',output)[1].tobytes())
                         output = cv_imread(deep_path)
-                        value_mg = calculate_mg(output)
-                        value_en = calculate_entropy(output)
+                        value_mg,value_en = calculate_metrics(output)
                         pjs['entropy'].append(value_en)
                         pjs['mg'].append(value_mg)
                         pjs['complexity'].append(complexity)
@@ -285,8 +267,7 @@ def process():
                         keys.append(mod)
                         alg_list.append(re.split(r'_image',mod)[0])
                         if f_gt.filename != '':
-                            value_psnr = calculate_psnr(imageGT,output)
-                            value_ssim = calculate_ssim(imageGT,output)
+                            _,_,value_psnr,value_ssim = calculate_metrics(imageGT,output)
                             pjs['psnr'].append(value_psnr)
                             pjs['ssim'].append(value_ssim)
                             image_list.append({'name':mod,'filename':filename2,'scores':{'PSNR':value_psnr,'SSIM':value_ssim,'MG':value_mg,'Entropy':value_en,'time':round(time_end - time_begin,3),'complexity':complexity}})
@@ -380,20 +361,14 @@ def process_image(image_folder,image_action,gt_path=''):
                 if image_filename in os.listdir(gt_path):
                         uploadpathGT = filenameGT
                         imageGT = cv_imread(uploadpathGT)
-                        value_psnr = calculate_psnr(image,imageGT)
-                        value_ssim = calculate_ssim(imageGT,image)
-                        value_mg = calculate_mg(image)
-                        value_en = calculate_entropy(image)
-                        value_psnr_gt = calculate_psnr(imageGT,imageGT)
-                        value_ssim_gt = calculate_ssim(imageGT,imageGT)
-                        value_mg_gt = calculate_mg(imageGT)
-                        value_en_gt = calculate_entropy(imageGT)
+                        value_en,value_mg,value_psnr,value_ssim = calculate_metrics(image,imageGT)
+                        value_en_gt,value_mg_gt,value_psnr_gt,value_ssim_gt = calculate_metrics(imageGT,imageGT)
                         image_list = [
                             {'name':'origin','filename':filename,'scores':{'PSNR':value_psnr,'SSIM':value_ssim,'MG':value_mg,'Entropy':value_en}},
                             {'name':'ground_truth','filename':filenameGT,'scores':{'PSNR':value_psnr_gt,'SSIM':value_ssim_gt,'MG':value_mg_gt,'Entropy':value_en_gt}}
                         ]
-                        entropy = [calculate_entropy(image),calculate_entropy(imageGT)]
-                        mg = [calculate_mg(image),calculate_mg(imageGT)]
+                        entropy = [value_en,value_en_gt]
+                        mg = [value_mg,value_mg_gt]
                         complexities = [0,0]
                         time_used = [0,0]
                         psnr = [value_psnr,value_psnr_gt]
@@ -430,18 +405,9 @@ def process_image(image_folder,image_action,gt_path=''):
             outputs,complexity = func(input_image_list,uploadpaths)
             output_image_list.append(outputs)
             time_end = time.time()
-            # tmp = filename.split('.')[0]
-            # tmp2 = filename.split('.')[-1]
-            # filename2 = f'{tmp}_{mod}.{tmp2}'
-            # deep_path = os.path.join(reusltDir,filename2)
-            # with open(deep_path,'wb') as f:
-            #     tmp3 = filename.split('.')[-1]
-            #     f.write(cv2.imencode(f'.{tmp3}',output)[1].tobytes())
             value_mg = 0
             value_en = 0
             for index,output in enumerate(outputs):
-                # print(mod,type(output),output.shape)
-                # image_combined = np.hstack((input_image_list[index],output))
                 tmp = filenames[index].split('.')[0].split('\\')[-1]
                 tmp2 = filenames[index].split('.')[-1]
                 filename2 = f'{tmp}_{mod}.{tmp2}'
