@@ -10,44 +10,13 @@ import cv2
 import numpy as np
 from utils import *
 import matplotlib.pyplot as plt
+from testdata_process.misc import *
+from testdata_process.image_dataset import TestDataset
+from torch.utils.data import DataLoader
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 model_path = os.path.join(basedir,'weights')
 
-# def defog_image(image,a):
-# 	img = Image.fromarray(cv2.cvtColor(image,cv2.COLOR_BGR2RGB))
-# 	img1 = loader(img)
-# 	img2 = transforms.ToTensor()(img)
-# 	c, h, w = img1.shape
-# 	patch_size = 16
-# 	num_w = int(w / patch_size)
-# 	num_h = int(h / patch_size)
-# 	t_list = []
-# 	for i in range(0, num_w):
-# 		for j in range(0, num_h):
-# 			patch = img1[:, 0 + j * patch_size:patch_size + j * patch_size,
-# 				0 + i * patch_size:patch_size + i * patch_size]
-# 			patch = torch.unsqueeze(patch, dim=0)
-# 			t = defog_net(patch)
-# 			t_list.append([i,j,t])
-	
-# 	t_list = sorted(t_list, key=lambda t_list:t_list[2])
-# 	a_list = t_list[:len(t_list)//100]
-# 	a0 = 0
-# 	for k in range(0,len(a_list)):
-# 		patch = img2[:, 0 + a_list[k][1] * patch_size:patch_size + a_list[k][1] * patch_size,
-# 				0 + a_list[k][0] * patch_size:patch_size + a_list[k][0] * patch_size]
-# 		a = torch.max(patch)
-# 		if a0 < a.item():
-# 			a0 = a.item()
-# 	for k in range(0,len(t_list)):
-# 		img2[:, 0 + t_list[k][1] * patch_size:patch_size + t_list[k][1] * patch_size,
-# 			0 + t_list[k][0] * patch_size:patch_size + t_list[k][0] * patch_size] = (img2[:,
-# 			0 + t_list[k][1] * patch_size:patch_size + t_list[k][1] * patch_size,
-# 			0 + t_list[k][0] * patch_size:patch_size + t_list[k][0] * patch_size] - a0*(1-t_list[k][2]))/t_list[k][2]
-# 	defog_img = transforms.ToPILImage()(img2)
-# 	defog_img = cv2.cvtColor(np.asarray(defog_img),cv2.COLOR_RGB2BGR)
-# 	return defog_img,sum(np.prod(p.size()) for p in defog_net.parameters())
 
 def dehaze_image(images,a):
     cudnn.benchmark = True
@@ -91,24 +60,6 @@ def dehaze_image(images,a):
     torch.cuda.empty_cache()
     return results,model_para
 
-# def DCP_image(images,a):
-#     dark_channel_piror = DarkChannelPrior(kernel_size=15, top_candidates_ratio=0.0001,omega=0.95,radius=40,eps=1e-3,open_threshold=True,depth_est=True)
-#     results = []
-#     for image in images:
-#         image = np.array(Image.fromarray(cv2.cvtColor(image,cv2.COLOR_BGR2RGB)))
-#         image = np.asarray(image,dtype=np.float64)
-        
-#         image_data_tensor = image_numpy_to_tensor(image)
-        
-#         # image_data_tensor = torch.cat((image_data_tensor,image_data_tensor),dim=0)
-#         with torch.no_grad():
-#             dehaze_images, dc,airlight,raw_t,refined_transmission,depth= dark_channel_piror(image_data_tensor)
-#         # del dark_channel_piror
-#         torch.cuda.empty_cache()
-#         dehaze_images = dehaze_images.squeeze(0).permute(1,2,0).cpu().numpy().astype(np.uint8)
-#         dehaze_images = cv2.cvtColor(np.asarray(dehaze_images),cv2.COLOR_RGB2BGR)
-#         results.append(dehaze_images)
-#     return results,sum(np.prod(p.size()) for p in dark_channel_piror.parameters())
 
 def AOD_image(images,a):
     dehaze_net = AOD_net()
@@ -219,4 +170,79 @@ def DMPHN_image(images,a):
             # E_out = chw_to_hwc(dehazed_image.squeeze().cpu().detach().numpy())
             # results.append(np.clip(E_out*255,0.0,255.0).astype(np.uint8))   
             results.append(dehazed_image.data+0.5)
+    return results,total_params
+
+def SDA_image(images,a):
+    # get dataloader
+    tmp_a = a
+    results = []
+    if isinstance(a,str) and ('jpg' in a or 'png' in a):
+        a = os.path.dirname(a)
+    if isinstance(a,str):
+        test_dataset = TestDataset(a)
+        Dataloader_test = DataLoader(dataset=test_dataset, batch_size=1, shuffle=True)
+        a_type = 1
+    else:
+        a_type = 0
+
+    device = 'cpu'
+    # --- Gpu device --- #
+    device_ids = [Id for Id in range(torch.cuda.device_count())]
+    print(device_ids)
+    if torch.cuda.is_available():
+        print( torch.cuda.is_available())
+        device = torch.device('cuda')
+
+
+
+    # --- Define the network --- #
+
+
+    encoder = Semi_Encoder()
+    encoder_state_dict = torch.load(os.path.join(model_path,'For_real/encoder_epoch_real.pth'),map_location=device)
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    for k, v in encoder_state_dict.items():
+        name = k[7:] # remove `module.`
+        new_state_dict[name] = v
+    # load params
+    encoder.load_state_dict(new_state_dict)
+    encoder = nn.DataParallel(encoder).to(device)
+
+    decoder = Semi_Decoder()
+    decoder_state_dict = torch.load(os.path.join(model_path,'For_real/decoder_epoch_real.pth'),map_location=device)
+    total_params = sum(p.numel() for p in encoder.parameters()) + sum(p.numel() for p in decoder.parameters())
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    for k, v in decoder_state_dict.items():
+        name = k[7:] # remove `module.`
+        new_state_dict[name] = v
+    # load params
+    decoder.load_state_dict(new_state_dict)
+    decoder = nn.DataParallel(decoder).to(device)
+
+    encoder.train()
+    decoder.train()
+
+    with torch.no_grad():
+        if a_type == 1:
+            for i, data in enumerate(Dataloader_test, 0):
+                test_haze, name = data
+                print(name[0],tmp_a[:-4])
+                if ('jpg' in tmp_a or 'png' in tmp_a) and name[0] != tmp_a[:-4]:
+                    continue
+                test_haze = test_haze.to(device)
+                haze_latent = encoder(test_haze)
+                dehazed = decoder(haze_latent)            
+                dehazed1 = dehazed.squeeze(0)
+                results.append(dehazed1)
+        else:
+            for image_name in a:
+                trans = transforms.Compose([transforms.ToTensor()])
+                test_haze = trans(Image.open(image_name))
+                test_haze = test_haze.to(device)
+                haze_latent = encoder(test_haze)
+                dehazed = decoder(haze_latent)            
+                dehazed1 = dehazed.squeeze(0)
+                results.append(dehazed1)
     return results,total_params

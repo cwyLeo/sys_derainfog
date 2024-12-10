@@ -406,7 +406,10 @@ def process_image(image_folder,image_action,gt_path=''):
                 func = getattr(derain_predict,mod)
             print(mod)
             time_begin = time.time()
-            outputs,complexity = func(input_image_list,uploadpaths)
+            if mod == 'SDA_image':
+                outputs,complexity = func(input_image_list,image_folder)
+            else:
+                outputs,complexity = func(input_image_list,uploadpaths)
             output_image_list.append(outputs)
             time_end = time.time()
             value_mg = 0
