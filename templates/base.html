@@ -155,25 +155,6 @@
 {% block scripts %}
 {{ super() }}
 <script type="text/javascript">
-// document.addEventListener('DOMContentLoaded', function() {
-//     // 切换内容显示
-//     document.querySelectorAll('.btn-group .flex-btn').forEach(function(button) {
-//         button.addEventListener('click', function(event) {
-//             event.preventDefault();
-//             var target = this.getAttribute('data-target');
-//             // 切换按钮激活状态
-//             document.querySelectorAll('.btn-group .flex-btn').forEach(function(btn) {
-//                 btn.classList.remove('active');
-//             });
-//             this.classList.add('active');
-//             // 切换内容显示
-//             document.querySelectorAll('.contents').forEach(function(content) {
-//                 content.classList.remove('active');
-//             });
-//             document.getElementById(target).classList.add('active');
-//         });
-//     });
-// });
 
     // 原始图片输入框的事件监听
     document.getElementById('lefile').addEventListener('change', function () {

@@ -534,6 +534,14 @@ def download(path):
     path = path.replace('\\', '/')
     return send_from_directory(uploadDir+'/', path, as_attachment=True)
 
+@app.route('/download2/<path:path>')
+def download2(path):
+    full_path = os.path.abspath(os.path.join('static', path))
+    # if not full_path.startswith('D:/cwy/college/study/shuoshi/lab/system/system/static'):
+        # return 'Invalid path', 403
+    path = path.replace('\\', '/')
+    return send_from_directory('static/', path, as_attachment=True)
+
 @app.route('/alg_list')
 def toalg():
     defog_alg_list = []
