@@ -5,9 +5,13 @@
 -models 模型文件
 
 -static 静态文件及上传文件夹
+
 -- js 前端动态文件
+
 -- results 处理结果
+
 -- show 渲染图片
+
 -- uploads_main 动态上传文件夹
 
 -templates 前端网页文件
