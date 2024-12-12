@@ -1,34 +1,32 @@
 # 文件结构
 
--GuideFilter 算法模块
+GuideFilter 算法模块
 
--models 模型文件
+models 模型文件
 
--static 静态文件及上传文件夹
+static/ 静态文件及上传文件夹
+│   ├── js 前端动态文件
+│   ├── results 处理结果
+│   ├── show 渲染图片
+│   └── uploads_main 动态上传文件夹
 
--- js 前端动态文件
+templates 前端网页文件
 
--- results 处理结果
+testdata_process 加载测试数据
 
--- show 渲染图片
+weights 权重文件
 
--- uploads_main 动态上传文件夹
+app.py 部署运行文件
 
--templates 前端网页文件
+deeplearning.py 调用去雾模型文件
 
--weights 权重文件
+derain_predict.py 调用去雨模型文件
 
--app.py 部署运行文件
+net.py 模型结构文件
 
--deeplearning.py 调用去雾模型文件
+physical.py 调用基础去雾算法算法
 
--derain_predict.py 调用去雨模型文件
-
--net.py 模型结构文件
-
--physical.py 调用基础去雾算法算法
-
--utils.py 辅助函数文件
+utils.py 辅助函数文件
 # 运行
 ```
 python app.py 
