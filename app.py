@@ -19,6 +19,7 @@ import subprocess
 import json
 import derain_predict
 import webbrowser
+from flask_cors import *
 
 
 app = Flask(__name__)
@@ -26,6 +27,8 @@ bootstrap = Bootstrap(app)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['UPLOAD_FOLDER'] = 'static/uploads_main'
 app.config['ALLOWED_EXTENSIONS'] = {'zip'}
+app.config['MAX_CONTENT_LENGTH'] = 3200 * 1024 * 1024
+CORS(app, resources=r'/*')
 
 def allowed_zip(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -464,8 +467,9 @@ def process_image(image_folder,image_action,gt_path=''):
         path_list.append(os.path.join(reusltDir,f'{key}.png'))
 
     return path_list,pjs,combined_list
- 
+
 @app.route('/upload', methods=['POST'])
+@app.route('/uploadImage', methods=['POST'])
 def upload_zip():
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
@@ -478,7 +482,8 @@ def upload_zip():
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
-        
+        file_path = file_path.replace('\\', '/')
+        return jsonify({'file_url':request.host_url + file_path}),200
         # 解压文件
         if allowed_zip(file.filename):
             with zipfile.ZipFile(file_path, 'r') as zip_ref:

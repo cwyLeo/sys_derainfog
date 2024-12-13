@@ -13,3 +13,9 @@ export const toNextDir = (items,path,parent_path,filename,imageAction) => {
         method:'POST'
     })
 }
+
+export const getData = () => {
+    return $request({
+        url:'',
+    })
+}
