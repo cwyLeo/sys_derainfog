@@ -77,7 +77,7 @@
 		},
 		watch: {
 			value(val, oldVal) {
-				//console.log('value',val, oldVal)
+				console.log('value',val, oldVal)
 				this.uploadLists = val;
 			},
 		},
@@ -282,8 +282,8 @@
 	}
 
 	.htz-image-upload-Item {
-		width: 160rpx;
-		height: 160rpx;
+		width: 240rpx;
+		height: 240rpx;
 		margin: 13rpx;
 		border-radius: 10rpx;
 		position: relative;

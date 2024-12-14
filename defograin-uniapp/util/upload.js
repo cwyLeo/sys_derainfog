@@ -7,7 +7,7 @@ function upload(options) {
 			filePath: options.filePath,
 			name: options.name,
             success(da) {
-				console.log(da.data)
+				console.log(da)
 				res(JSON.parse(da.data))
             },
             fail(err) {

@@ -2,7 +2,7 @@
 	<view class="sidebar-container">
 	  <view class="sidebar">
 	    <view class="sidebar-header">
-	      Logo
+	      <img class="sidebar-logo" src="../../static/newLogo.png" alt="" srcset="" />
 	    </view>
 	    <view class="sidebar-menu">
 	      <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)">
@@ -11,8 +11,10 @@
 	    </view>
 	  </view>
 	  <view class="main-content">
-	    <button @click="chooseAndUpload">选择并上传图片</button>
-		<image v-if="imageUrl" :src="imageUrl" mode="aspectFit"></image>
+	    <button @click="uploadImgs">上传图片</button>
+		<!-- <image v-if="imageUrl" :src="imageUrl" mode="aspectFit"></image> -->
+		<htz-image-upload :max="9" :chooseNum="9" v-model="pb_imgs" :value="pb_imgs"
+		@chooseSuccess="chooseSuccess" @imgDelete="imgDelete"></htz-image-upload>
 	  </view>
 	</view>
   <view>
@@ -31,7 +33,8 @@ export default {
 	      { title: '菜单项3',url:'../index/index' },
 	      { title: '菜单项4' }
 	    ],
-		imageUrl:''
+		imageUrl:'',
+		pb_imgs:[]
 	  };
 	},
   methods: {
@@ -45,7 +48,53 @@ export default {
 		  })
         }
       });
-    }
+    },
+	// 选择图片
+	chooseSuccess(e) {
+		console.log('选择图片',e)
+		// if(this.pb_imgs.length+e.length>3){
+		// 	this.$u.toast('最多上传3张图片！');
+		// 	return;
+		// }
+		this.pb_imgs = this.pb_imgs.concat(e)
+		console.log(this.pb_imgs.length)
+	},
+	// 删除图片
+	imgDelete(e){
+		console.log('删除图片',e)
+		this.pb_imgs = e
+		//this.uploadImgs()
+	},
+	async uploadImgs() {
+		this.str0 = ''
+		var _this = this
+		var isSuccess = true
+		for(let j = 0; j < this.pb_imgs.length; j++){
+			// let result = await this.compress(this.pb_imgs[j])
+			//console.log('图', j+1 ,'压缩结果',result)
+			
+			let result2 = await this.upload(this.pb_imgs[j])
+			//console.log('图', j+1 ,'上传结果',result2)
+			isSuccess = result2 && isSuccess
+		}
+		//console.log('所有图片上传结果',isSuccess)
+		return isSuccess;
+		
+	},
+	//上传图片
+	upload(imagePath){
+		var _this = this	
+			
+		return uploadImage(imagePath).then(res1=>{
+			console.log('上传操作',res1)
+			if(res1.code != 200){
+				//_this.$u.toast('图片上次失败')
+				console.log('图片',imagePath,'上传失败')
+				return false;
+			}
+			return true;
+		})
+	}
   }
 }
 </script>
@@ -63,8 +112,12 @@ export default {
 	  padding: 20px;
 	  font-weight: bold;
 	  border-bottom: 1px solid #ccc;
+	  background-color: #005825;
 	}
-	 
+	 .sidebar-logo {
+	   width: 100%; /* 使图片宽度等于父容器的宽度 */
+	   height: auto; /* 保持图片的宽高比 */
+	 }
 	.sidebar-menu {
 	  margin-top: 20px;
 	}
