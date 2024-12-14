@@ -483,7 +483,7 @@ def upload_zip():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         file_path = file_path.replace('\\', '/')
-        return jsonify({'file_url':request.host_url + file_path}),200
+        return jsonify({'file_url':request.host_url + file_path,'code':200})
         # 解压文件
         if allowed_zip(file.filename):
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
