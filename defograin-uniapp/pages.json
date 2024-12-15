@@ -10,13 +10,13 @@
 			}
 		},
 		{
-			"path": "pages/news/news",
+			"path": "pages/files/files",
 			"style": {
 				// "navigationBarTitleText": "uni-app"
 			}
 		},
 		{
-			"path": "pages/about/about",
+			"path": "pages/alglist/alglist",
 			"style": {
 				// "navigationBarTitleText": "uni-app"
 			}

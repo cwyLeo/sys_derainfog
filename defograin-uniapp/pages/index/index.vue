@@ -28,9 +28,9 @@ export default {
 	data() {
 	  return {
 	    sidebarItems: [
-	      { title: '菜单项1',url:'../news/news' },
-	      { title: '菜单项2',url:'../about/about' },
-	      { title: '菜单项3',url:'../index/index' },
+	      { title: '单例运行',url:'../index/index' },
+	      { title: '文件库',url:'../files/files' },
+	      { title: '算法库',url:'../alglist/alglist' },
 	      { title: '菜单项4' }
 	    ],
 		imageUrl:'',
@@ -38,6 +38,13 @@ export default {
 	  };
 	},
   methods: {
+	  handleSidebarItemClick(item) {
+	    // 处理侧边栏菜单项点击事件
+	    console.log('点击了菜单项:', item);
+	    uni.navigateTo({
+	    	url:item.url
+	    })
+	  },
     chooseAndUpload() {
       uni.chooseImage({
         count: 1, // 默认选择1张图片

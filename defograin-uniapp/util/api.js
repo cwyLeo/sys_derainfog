@@ -17,3 +17,21 @@ export const uploadImage = (filepath) =>{
 		method:'POST'
 	})
 }
+
+export const getFolders = (path) =>{
+	return $request({
+		url:'folders',
+		data:{
+			path:path
+		}
+	})
+}
+
+export const getImage = (imagePath) =>{
+	return $request({
+		url:'get_image',
+		data:{
+			path:imagePath
+		}
+	})
+}

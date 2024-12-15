@@ -2,7 +2,7 @@
   <view class="sidebar-container">
     <view class="sidebar">
       <view class="sidebar-header">
-        Logo
+        <img class="sidebar-logo" src="../../static/newLogo.png" alt="" srcset="" />
       </view>
       <view class="sidebar-menu">
         <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)">
@@ -21,9 +21,9 @@ export default {
   data() {
     return {
       sidebarItems: [
-        { title: '菜单项1',url:'../news/news' },
-        { title: '菜单项2',url:'../about/about' },
-        { title: '菜单项3',url:'../index/index' },
+        { title: '单例运行',url:'../index/index' },
+        { title: '文件库',url:'../files/files' },
+        { title: '算法库',url:'../alglist/alglist' },
         { title: '菜单项4' }
       ]
     };
@@ -41,34 +41,38 @@ export default {
 </script>
  
 <style>
-.sidebar-container {
-  display: flex;
-}
- 
-.sidebar {
-  background-color: #f0f0f0;
-  width: 200px;
-}
- 
-.sidebar-header {
-  padding: 20px;
-  font-weight: bold;
-  border-bottom: 1px solid #ccc;
-}
- 
-.sidebar-menu {
-  margin-top: 20px;
-}
- 
-.sidebar-item {
-  padding: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
- 
-.sidebar-item:hover {
-  background-color: #e0e0e0;
-}
+	.sidebar-container {
+	  display: flex;
+	}
+	 
+	.sidebar {
+	  background-color: #f0f0f0;
+	  width: 200px;
+	}
+	 
+	.sidebar-header {
+	  padding: 20px;
+	  font-weight: bold;
+	  border-bottom: 1px solid #ccc;
+	  background-color: #005825;
+	}
+	 .sidebar-logo {
+	   width: 100%; /* 使图片宽度等于父容器的宽度 */
+	   height: auto; /* 保持图片的宽高比 */
+	 }
+	.sidebar-menu {
+	  margin-top: 20px;
+	}
+	 
+	.sidebar-item {
+	  padding: 10px;
+	  cursor: pointer;
+	  transition: background-color 0.3s;
+	}
+	 
+	.sidebar-item:hover {
+	  background-color: #e0e0e0;
+	}
  
 .main-content {
   flex: 1;

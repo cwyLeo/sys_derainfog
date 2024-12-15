@@ -469,8 +469,30 @@ def process_image(image_folder,image_action,gt_path=''):
     return path_list,pjs,combined_list
 
 @app.route('/upload', methods=['POST'])
-@app.route('/uploadImage', methods=['POST'])
 def upload_zip():
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+    if 'file' not in request.files:
+        return '没有文件部分'
+    file = request.files['file']
+    if file.filename == '':
+        return '没有选择文件'
+    if file:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        file_path = file_path.replace('\\', '/')
+        # 解压文件
+        if allowed_zip(file.filename):
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(app.config['UPLOAD_FOLDER'])
+            os.remove(file_path)
+            return browse()
+        return browse()
+    return browse()
+
+@app.route('/uploadImage', methods=['POST'])
+def uploadImage():
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     if 'file' not in request.files:
@@ -560,6 +582,45 @@ def toalg():
         if re.findall(r'_image$',mod):
             derain_alg_list.append(mod)
     return render_template('alg_list.html',defog_alg_list=defog_alg_list,derain_alg_list=derain_alg_list)
+
+@app.route('/folders', methods=['GET'])
+def get_folders():
+    olds = '/'
+    folder_path = request.args.get('path', default='', type=str)
+    if not folder_path:
+        folder_path = uploadDir
+    else:
+        if folder_path == '':
+            olds = ''
+        else:
+            olds = folder_path + olds
+        folder_path = os.path.join(uploadDir, folder_path)
+    # 确保用户不会访问到基础路径之外的文件
+    if not os.path.commonprefix([uploadDir, folder_path]) == uploadDir:
+        return jsonify({'error': 'Invalid path'}), 400
+
+    try:
+        entries = os.listdir(folder_path)
+        files_and_folders = []
+        host_ip = request.host_url
+        port = 5000
+        for entry in entries:
+            entry_path = os.path.join(folder_path, entry)
+            if os.path.isdir(entry_path):
+                files_and_folders.append({'name': entry, 'type': 'directory', 'url':f'{host_ip}/static/show/box.png'})
+            elif re.findall(r'(jpg|jpeg|png|gif|bmp)',entry.lower()):
+                files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/uploads_main/{olds}{entry}'})
+            else:
+                files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/show/undefined.png'})
+        return jsonify(files_and_folders)
+    except FileNotFoundError:
+        return jsonify({'error': 'File not found'}), 404
+    
+@app.route('/get_image',methods=['GET'])
+def get_image():
+    imageName = request.args.get('path', default='', type=str)
+    # 假设你的图片存放在 'static/images' 目录下
+    return send_from_directory('static/uploads_main', imageName)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000,debug=True)
