@@ -296,7 +296,7 @@
 	}
 
 	.htz-image-upload-Item-add {
-		font-size: 105rpx;
+		font-size: 160rpx;
 		/* line-height: 160rpx; */
 		text-align: center;
 		border: 1px dashed #d9d9d9;
