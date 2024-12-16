@@ -13,6 +13,7 @@
 </script>
 
 <style>
+	@import 'static/common.css';
 	/*每个页面公共css */
 	uni-page-head{display: none;}
 </style>

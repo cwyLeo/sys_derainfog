@@ -1,9 +1,13 @@
 <template>
+	<view>
+	<view class="header">
+	  <img class="logo" src="../../static/newLogo.png" alt="" srcset="" />
+	</view>
 	<view class="sidebar-container">
 	  <view class="sidebar">
-	    <view class="sidebar-header">
-	      <img class="sidebar-logo" src="../../static/newLogo.png" alt="" srcset="" />
-	    </view>
+	    <!-- <view class="sidebar-header"> -->
+	      <!-- <img class="sidebar-logo" src="../../static/newLogo.png" alt="" srcset="" /> -->
+	    <!-- </view> -->
 	    <view class="sidebar-menu">
 	      <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)">
 	        {{ item.title }}
@@ -11,15 +15,37 @@
 	    </view>
 	  </view>
 	  <view class="main-content">
-		<!-- <image v-if="imageUrl" :src="imageUrl" mode="aspectFit"></image> -->
+	    <view class="image-upload-columns">
+	      <!-- 源图像输入栏 -->
+	      <view class="image-upload-column">
+	        <view class="image-upload-header">源图像输入</view>
+	        <htz-image-upload :max="9" :chooseNum="9" v-model="pb_imgs" :value="pb_imgs"
+	                          @chooseSuccess="chooseSuccess" @imgDelete="imgDelete">
+	        </htz-image-upload>
+	      </view>
+	      
+	      <!-- 真值图像输入栏 -->
+	      <view class="image-upload-column">
+	        <view class="image-upload-header">真值图像输入</view>
+	        <htz-image-upload :max="9" :chooseNum="9" v-model="tr_imgs" :value="tr_imgs"
+	                          @chooseSuccess="chooseSuccessTr" @imgDelete="imgDeleteTr">
+	        </htz-image-upload>
+	      </view>
+	    </view>
+	    
+	    <!-- 上传按钮 -->
+	    <button class="upload-btn" @click="uploadImgs">上传图片并执行操作</button>
+	  </view>
+<!-- 
+	  <view class="main-content">
 		<htz-image-upload :max="9" :chooseNum="9" v-model="pb_imgs" :value="pb_imgs"
 		@chooseSuccess="chooseSuccess" @imgDelete="imgDelete"></htz-image-upload>
-		<button @click="uploadImgs">上传图片并执行操作</button>
-	  </view>
+		<htz-image-upload :max="9" :chooseNum="9" v-model="tr_imgs" :value="tr_imgs"
+		@chooseSuccess="chooseSuccessTr" @imgDelete="imgDeleteTr"></htz-image-upload>
+		<button class="delete-btn" @click="uploadImgs">上传图片并执行操作</button>
+	  </view> -->
 	</view>
-  <view>
-    
-  </view>
+	</view>
 </template>
 
 <script>
@@ -34,7 +60,8 @@ export default {
 	      { title: '菜单项4' }
 	    ],
 		imageUrl:'',
-		pb_imgs:[]
+		pb_imgs:[],
+		tr_imgs:[]
 	  };
 	},
   methods: {
@@ -72,6 +99,22 @@ export default {
 		this.pb_imgs = e
 		//this.uploadImgs()
 	},
+	// 选择图片
+	chooseSuccessTr(e) {
+		console.log('选择图片',e)
+		// if(this.pb_imgs.length+e.length>3){
+		// 	this.$u.toast('最多上传3张图片！');
+		// 	return;
+		// }
+		this.tr_imgs = this.tr_imgs.concat(e)
+		console.log(this.tr_imgs.length)
+	},
+	// 删除图片
+	imgDeleteTr(e){
+		console.log('删除图片',e)
+		this.tr_imgs = e
+		//this.uploadImgs()
+	},
 	async uploadImgs() {
 		this.str0 = ''
 		var _this = this
@@ -106,87 +149,80 @@ export default {
 }
 </script>
 <style>
-	.sidebar-container {
-	  display: flex;
-	}
-	 
-	.sidebar {
-	  background-color: #f0f0f0;
-	  width: 200px;
-	}
-	 
-	.sidebar-header {
-	  padding: 20px;
-	  font-weight: bold;
-	  border-bottom: 1px solid #ccc;
-	  background-color: #005825;
-	}
-	 .sidebar-logo {
-	   width: 100%; /* 使图片宽度等于父容器的宽度 */
-	   height: auto; /* 保持图片的宽高比 */
-	 }
-	.sidebar-menu {
-	  margin-top: 20px;
-	}
-	 
-	.sidebar-item {
-	  padding: 10px;
-	  cursor: pointer;
-	  transition: background-color 0.3s;
-	}
-	 
-	.sidebar-item:hover {
-	  background-color: #e0e0e0;
-	}
-	 
-	.main-content {
-	  flex: 1;
-	  padding: 20px;
-	}
-.sidebar {
+
+/* 主内容区域样式 */
+.main-content {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff; /* 背景颜色 */
-  width: 250px; /* 侧边栏宽度 */
-  height: 100vh; /* 侧边栏高度 */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+  align-items: center;
+  width: 100%;
 }
 
-.sidebar-header {
-  padding: 20px;
-  text-align: center;
-}
-
-.sidebar-logo {
-  width: 100%; /* 根据需要调整大小 */
-  max-width: 150px; /* 最大宽度 */
-  height: auto;
-}
-
-.sidebar-menu {
-  flex: 1;
-  padding: 0 20px;
-}
-
-.sidebar-item {
+/* 图像上传列容器 */
+.image-upload-columns {
   display: flex;
-  align-items: center; /* 垂直居中 */
-  justify-content: center; /* 水平居中 */
-  color: #333; /* 文字颜色 */
-  font-family: 'Roboto', sans-serif; /* 使用Roboto字体 */
-  font-size: 16px; /* 字体大小 */
-  font-weight: 500; /* 字体粗细 */
-  padding: 15px 10px; /* 内边距 */
-  border-bottom: 1px solid #eaeaea; /* 分隔线 */
-  cursor: pointer; /* 鼠标样式 */
-  transition: background-color 0.3s ease; /* 过渡效果 */
+  justify-content: space-evenly; /* 使用 space-evenly 来平均分配间距 */
+  width: 100%;
+  max-width: 1200px; /* 根据需要调整最大宽度 */
+  margin-bottom: 40px; /* 按钮与上传区域之间的间距 */
+  background: linear-gradient(to right, #4c4c4c, #333); /* 背景渐变 */
+  padding: 20px;
+  border-radius: 10px; /* 圆角边框 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 更深的阴影效果 */
 }
 
-.sidebar-item:last-child {
-  border-bottom: none; /* 去掉最后一个元素的边框 */
+/* 单个图像上传列 */
+.image-upload-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 45%; /* 减少宽度，为间距留出更多空间 */
+  margin: 0 20px; /* 添加左右外边距 */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* 边框颜色调整 */
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1); /* 透明背景 */
+  backdrop-filter: blur(10px); /* 背景模糊效果 */
+  border-radius: 8px; /* 圆角边框 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加动态效果 */
 }
 
-.sidebar-item:hover {
-  background-color: #f5f5f5; /* 鼠标悬停背景颜色 */
+.image-upload-column:hover {
+  transform: translateY(-5px); /* 鼠标悬停时轻微上移 */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
 }
+
+
+/* 图像上传标题 */
+.image-upload-header {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* 上传按钮样式 */
+.upload-btn {
+  width: 90%; /* 按钮宽度 */
+  padding: 15px; /* 增加内边距 */
+  font-size: 16px;
+  color: #fff;
+  background-image: linear-gradient(to right, #1e3c72, #2a5298); /* 渐变背景 */
+  border: none;
+  border-radius: 8px; /* 更大的圆角 */
+  cursor: pointer;
+  outline: none; /* 移除聚焦时的轮廓线 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+
+.upload-btn:hover {
+  transform: translateY(-3px); /* 鼠标悬停时轻微上移 */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
+  background-image: linear-gradient(to right, #2a5298, #1e3c72); /* 鼠标悬停时渐变反向 */
+}
+
+.upload-btn:active {
+  transform: translateY(0); /* 点击时无上移效果 */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 点击时减少阴影效果 */
+}
+
 </style>

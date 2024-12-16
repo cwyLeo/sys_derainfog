@@ -1,0 +1,80 @@
+.header {
+	position:fixed;
+	width: 100%;
+	padding: 20px;
+	text-align: center;
+	background: #005825; /* 使用渐变背景 */
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* 更浅的边框颜色 */
+	top: 0;
+	left: 0;
+	z-index: 99;
+}
+.sidebar-container {
+  display: flex;
+  margin-top: 190px;
+}
+
+.sidebar {
+	position: fixed;
+	left: 0;
+  background: linear-gradient(to bottom, #4d4d4d, #333); /* 使用渐变背景 */
+  color: #fff; /* 文字颜色改为白色 */
+  width: 250px;
+  height: 100vh;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 更深的阴影效果 */
+  border-right: 1px solid rgba(255, 255, 255, 0.1); /* 添加右边框 */
+}
+
+.sidebar-header {
+  padding: 20px;
+  text-align: center;
+  background: linear-gradient(to right, #009688, #005825); /* 使用渐变背景 */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* 更浅的边框颜色 */
+}
+
+.logo {
+	height: 100%;
+	max-height: 180px;
+	filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3)); /* 给logo添加阴影 */
+}
+
+.sidebar-logo {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3)); /* 给logo添加阴影 */
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 0 20px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'Ubuntu', sans-serif; /* 使用更现代的字体 */
+  font-size: 16px;
+  font-weight: 500;
+  padding: 15px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* 更浅的边框颜色 */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease; /* 添加transform过渡 */
+}
+
+.sidebar-item:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* 鼠标悬停时的背景颜色 */
+  transform: translateX(5px); /* 鼠标悬停时的轻微位移 */
+}
+
+.sidebar-item:last-child {
+  border-bottom: none;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  margin-left: 250px;
+}

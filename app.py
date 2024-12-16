@@ -622,5 +622,18 @@ def get_image():
     # 假设你的图片存放在 'static/images' 目录下
     return send_from_directory('static/uploads_main', imageName)
 
+@app.route('/get_alg',methods=['GET'])
+def get_alg():
+    result = []
+    host_ip = request.host_url
+    modules = dir(deeplearning)
+    for mod in modules:
+        if re.findall(r'\_image$',mod):
+            result.append({'url':f'{host_ip}/static/show/alg_net/{mod[:-6]}.png','title':mod[:-6],'paper':'https://ieeexplore.ieee.org/document/8237773/keywords#keywords'})
+    return jsonify({'algs':result})
+
+@app.route('/dehaze',methods=['POST'])
+def dehaze():
+    pass
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000,debug=True)
