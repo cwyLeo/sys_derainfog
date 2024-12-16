@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from testdata_process.misc import *
 from testdata_process.image_dataset import TestDataset
 from torch.utils.data import DataLoader
+import re
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 model_path = os.path.join(basedir,'weights')
@@ -228,8 +229,8 @@ def SDA_image(images,a):
         if a_type == 1:
             for i, data in enumerate(Dataloader_test, 0):
                 test_haze, name = data
-                print(name[0],tmp_a[:-4])
-                if ('jpg' in tmp_a or 'png' in tmp_a) and name[0] != tmp_a[:-4]:
+                print(re.split(r'\\|/',name[0])[-1],re.split(r'\\|/',tmp_a[:-4])[-1])
+                if ('jpg' in tmp_a or 'png' in tmp_a) and re.split(r'\\|/',name[0])[-1] != re.split(r'\\|/',tmp_a[:-4])[-1]:
                     continue
                 test_haze = test_haze.to(device)
                 haze_latent = encoder(test_haze)

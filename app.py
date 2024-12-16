@@ -505,6 +505,18 @@ def uploadImage():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         file_path = file_path.replace('\\', '/')
+        outputs,_ = deeplearning.SDA_image([file],file_path)
+        for index,output in enumerate(outputs):
+                tmp = filename.split('.')[0].split('\\')[-1]
+                tmp2 = filename.split('.')[-1]
+                filename = f'{tmp}_SDA.{tmp2}'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                if torch.is_tensor(output):
+                    torchvision.utils.save_image(output,file_path)
+                else:
+                    with open(file_path,'wb') as f:
+                        tmp3 = filename.split('.')[-1]
+                        f.write(cv2.imencode(f'.{tmp3}',output)[1].tobytes())
         return jsonify({'file_url':request.host_url + file_path,'code':200})
         # 解压文件
         if allowed_zip(file.filename):

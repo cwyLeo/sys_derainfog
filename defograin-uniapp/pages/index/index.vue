@@ -35,15 +35,8 @@
 	    
 	    <!-- 上传按钮 -->
 	    <button class="upload-btn" @click="uploadImgs">上传图片并执行操作</button>
+		<img v-if="result!=''" :src="result" alt="" srcset="" />
 	  </view>
-<!-- 
-	  <view class="main-content">
-		<htz-image-upload :max="9" :chooseNum="9" v-model="pb_imgs" :value="pb_imgs"
-		@chooseSuccess="chooseSuccess" @imgDelete="imgDelete"></htz-image-upload>
-		<htz-image-upload :max="9" :chooseNum="9" v-model="tr_imgs" :value="tr_imgs"
-		@chooseSuccess="chooseSuccessTr" @imgDelete="imgDeleteTr"></htz-image-upload>
-		<button class="delete-btn" @click="uploadImgs">上传图片并执行操作</button>
-	  </view> -->
 	</view>
 	</view>
 </template>
@@ -61,7 +54,8 @@ export default {
 	    ],
 		imageUrl:'',
 		pb_imgs:[],
-		tr_imgs:[]
+		tr_imgs:[],
+		result:''
 	  };
 	},
   methods: {
@@ -125,8 +119,10 @@ export default {
 			
 			let result2 = await this.upload(this.pb_imgs[j])
 			//console.log('图', j+1 ,'上传结果',result2)
+			this.result = result2
 			isSuccess = result2 && isSuccess
 		}
+		
 		//console.log('所有图片上传结果',isSuccess)
 		return isSuccess;
 		
@@ -142,7 +138,7 @@ export default {
 				console.log('图片',imagePath,'上传失败')
 				return false;
 			}
-			return true;
+			return res1.file_url;
 		})
 	}
   }
