@@ -3,34 +3,36 @@
     <img class="logo" src="../../static/newLogo.png" alt="" srcset="" />
   </view>
   <view class="sidebar-container">
-    <view class="sidebar">
-<!--      <view class="sidebar-header">
+<!--    <view class="sidebar">
+     <view class="sidebar-header">
         <img class="sidebar-logo" src="../../static/newLogo.png" alt="" srcset="" />
-      </view> -->
+      </view>
       <view class="sidebar-menu">
-        <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)">
+        <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)" :class="{ active: item.active === true }">
           {{ item.title }}
         </view>
       </view>
-    </view>
-  <view class="main-content container">
+    </view> -->
+  <view class="main-content">
     <view v-if="currentPath !== ''" class="back-button-container">
       <button @click="goBack">返回上一级</button>
     </view>
     <view class="entries-container">
       <view v-for="(entry, index) in filesAndFolders" :key="index" class="entry-item">
-        <view class="entry-content">
+
 			<view v-if="entry.type === 'file'" class="entry-content">
-				<image v-if="entry.type === 'file'" :src="entry.url" class="entry-image" mode="aspectFill" @click="downloadFile(entry.url,entry.name)"></image>
+				<image v-if="entry.type === 'file'" :src="entry.url" class="entry-image" mode="aspectFit" @click="downloadFile(entry.url,entry.name)"></image>
 				<text @click="downloadFile(entry.url,entry.name)" class="entry-name">{{ entry.name }}</text>
 			</view>
           
-          <view v-else class="directory-icon" @click="entry.type === 'directory' ? enterFolder(entry.name) : null">
-            <image :src="entry.url" class="entry-image" mode="aspectFill"></image>
+         <view v-else  @click="entry.type === 'directory' ? enterFolder(entry.name) : null" class="entry-content">
+            <image :src="entry.url" class="entry-image" mode="aspectFit"></image>
+			<text v-if="entry.type === 'directory'" class="entry-name">{{ entry.name }}</text>
           </view>
-          <text v-if="entry.type === 'directory'" class="entry-name">{{ entry.name }}</text>
-        </view>
+          
+
       </view>
+	  <!-- <div class="placeholder"></div> -->
     </view>
   </view>
   </view>
@@ -42,10 +44,10 @@ export default {
   data() {
     return {
       sidebarItems: [
-        { title: '单例运行',url:'../index/index' },
-        { title: '文件库',url:'../files/files' },
-        { title: '算法库',url:'../alglist/alglist' },
-        { title: '菜单项4' }
+        { title: '单例运行',url:'../index/index',active:false },
+        { title: '文件库',url:'../files/files',active:true },
+        { title: '算法库',url:'../alglist/alglist',active:false },
+        { title: '运行结果',url:'../result/result',active:false }
       ],
 	  filesAndFolders:[],
 	  currentPath:'',
@@ -132,12 +134,6 @@ export default {
 .container {
   padding: 20px;
 }
-.entry-item {
-  margin-bottom: 10px;
-  padding: 10px;
-  background-color: #f8f8f8;
-  border-radius: 5px;
-}
 .main-content.container {
   display: flex;
   flex-direction: column;
@@ -150,35 +146,56 @@ export default {
 .entries-container {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start; /* 调整对齐方式 */
+  /* align-items: center; */
+  height: 500px;
+  justify-content: flex-start;
 }
-
 .entry-item {
-  margin: 10px;
+  margin-bottom: 50px;
+  margin-right: 20px;
+  /* height: 20vh; */
+  /* min-width: 10vw; */
+  width: 18%;
+  min-width: 200px;
+  /* min-height: 100px; */
+  object-fit: contain;
+  text-align: center;
 }
-
-.entry-content {
-  display: flex;
-  flex-direction: column; /* 使图片和文本垂直排列 */
-  align-items: center; /* 居中对齐 */
+.entry-content{
+	height: 100%;
+	width: 100%;
 }
-
-.entry-image, .directory-icon {
-  width: 100px; /* 设置图片和图标的宽度 */
-  height: 100px; /* 设置图片和图标的高度 */
-  margin-bottom: 5px; /* 在图片和文本之间添加间距 */
+.entry-image {
+  /* height: 50%; */
+  /* max-width: 8vw; */
+  /* min-width: 100px; */
+  /* max-height: 100%; */
+  height: 100%;
+  width: 100%;
+  display: block;
+  /* object-fit: contain; */
+  /* margin-bottom: 5px; */
 }
 
 .directory-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* display: flex; */
+  /* align-items: center; */
+  /* justify-content: center; */
   cursor: pointer;
-  background-color: #f0f0f0; /* 添加背景色以便区分 */
+  /* max-height: 100%; */
+  /* background-color: #f0f0f0; */
 }
 
 .entry-name {
-  text-align: center; /* 文件名居中对齐 */
+  display: block; /* 将标题设置为块级元素，以便可以设置宽度 */
+  width: 100%; /* 标题宽度与图片相同 */
+  margin-top: 8px; /* 标题与图片的间距 */
+  text-align: center; /* 标题居中 */
+  color: #333; /* 标题颜色 */
+  text-decoration: none; /* 移除链接的下划线 */
+  font-size: 16px; /* 设置标题字体大小 */
+  transition: color 0.3s ease; /* 为标题添加颜色过渡效果 */
+  cursor: pointer;
 }
 
 </style>

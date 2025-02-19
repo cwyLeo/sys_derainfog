@@ -493,31 +493,40 @@ def upload_zip():
 
 @app.route('/uploadImage', methods=['POST'])
 def uploadImage():
+    resultUrls = []
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     if 'file' not in request.files:
         return '没有文件部分'
     file = request.files['file']
+    print(request.form)
+    alg_name = request.form['name']
     if file.filename == '':
         return '没有选择文件'
     if file:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        old_filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], old_filename)
         file.save(file_path)
         file_path = file_path.replace('\\', '/')
-        outputs,_ = deeplearning.SDA_image([file],file_path)
-        for index,output in enumerate(outputs):
-                tmp = filename.split('.')[0].split('\\')[-1]
-                tmp2 = filename.split('.')[-1]
-                filename = f'{tmp}_SDA.{tmp2}'
+        img = cv2.imread(file_path)
+        outputs = dehaze(img,file_path,alg_name)
+        # outputs,_ = deeplearning.SDA_image([file],[file_path])
+        # mod = 'SDA'
+        # for index,output in enumerate(outputs):
+        for mod,output in outputs.items():
+                tmp = old_filename.split('.')[0].split('\\')[-1]
+                tmp2 = old_filename.split('.')[-1]
+                filename = f'{tmp}_{mod}.{tmp2}'
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file_path = file_path.replace('\\', '/')
                 if torch.is_tensor(output):
                     torchvision.utils.save_image(output,file_path)
                 else:
                     with open(file_path,'wb') as f:
                         tmp3 = filename.split('.')[-1]
                         f.write(cv2.imencode(f'.{tmp3}',output)[1].tobytes())
-        return jsonify({'file_url':request.host_url + file_path,'code':200})
+                resultUrls.append(request.host_url + file_path)
+        return jsonify({'file_urls':resultUrls,'file_url':resultUrls[0],'code':200})
         # 解压文件
         if allowed_zip(file.filename):
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
@@ -641,11 +650,26 @@ def get_alg():
     modules = dir(deeplearning)
     for mod in modules:
         if re.findall(r'\_image$',mod):
-            result.append({'url':f'{host_ip}/static/show/alg_net/{mod[:-6]}.png','title':mod[:-6],'paper':'https://ieeexplore.ieee.org/document/8237773/keywords#keywords'})
+            result.append({'url':f'{host_ip}/static/show/alg_net/{mod[:-6]}.png','title':mod[:-6],'paper':f'{host_ip}/static/show/alg_net/{mod[:-6]}.pdf'})
     return jsonify({'algs':result})
 
 @app.route('/dehaze',methods=['POST'])
-def dehaze():
-    pass
+def dehaze(file,path,alg_name):
+    results = {}
+    modules = dir(deeplearning) + dir(physical)
+    for mod in modules:
+        if re.findall(r'_image$',mod):
+            if mod in dir(physical):
+                func = getattr(physical,mod)
+            else:
+                func = getattr(deeplearning,mod)
+        else:
+            continue
+        if alg_name not in mod:
+            continue
+        outputs,_ = func([file],[path])
+        results[mod[:-6]] = outputs[0]
+    return results
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000,debug=True)

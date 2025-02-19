@@ -50,9 +50,12 @@
     "quickapp" : {},
     /* 小程序特有相关 */
     "mp-weixin" : {
-        "appid" : "",
+        "appid" : "wx5a9eed80e1bd490c",
         "setting" : {
-            "urlCheck" : false
+            "urlCheck" : false,
+            "postcss" : true,
+            "es6" : true,
+            "minified" : true
         },
         "usingComponents" : true
     },
@@ -65,11 +68,11 @@
     "mp-toutiao" : {
         "usingComponents" : true
     },
-	"h5": {
-		"env":{
-			"VUE_APP_SERVER_URL": "http://127.0.0.1:5000/"
-		}
-	},
+    "h5" : {
+        "env" : {
+            "VUE_APP_SERVER_URL" : "http://127.0.0.1:5000/"
+        }
+    },
     "uniStatistics" : {
         "enable" : false
     },

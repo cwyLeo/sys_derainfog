@@ -14,6 +14,7 @@ from testdata_process.misc import *
 from testdata_process.image_dataset import TestDataset
 from torch.utils.data import DataLoader
 import re
+from model import *
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 model_path = os.path.join(basedir,'weights')
@@ -233,6 +234,7 @@ def SDA_image(images,a):
                 if ('jpg' in tmp_a or 'png' in tmp_a) and re.split(r'\\|/',name[0])[-1] != re.split(r'\\|/',tmp_a[:-4])[-1]:
                     continue
                 test_haze = test_haze.to(device)
+                test_haze = test_haze.unsqueeze(0)
                 haze_latent = encoder(test_haze)
                 dehazed = decoder(haze_latent)            
                 dehazed1 = dehazed.squeeze(0)
@@ -242,8 +244,79 @@ def SDA_image(images,a):
                 trans = transforms.Compose([transforms.ToTensor()])
                 test_haze = trans(Image.open(image_name))
                 test_haze = test_haze.to(device)
+                test_haze = test_haze.unsqueeze(0)
                 haze_latent = encoder(test_haze)
                 dehazed = decoder(haze_latent)            
                 dehazed1 = dehazed.squeeze(0)
                 results.append(dehazed1)
+    return results,total_params
+
+def DEA_image(images,a):
+    network = Backbone()
+    ckpt = torch.load(os.path.join('weights\\PSNR3426_SSIM9885.pth'), map_location='cpu')
+    network.load_state_dict(ckpt)
+    total_params = sum(p.numel() for p in network.parameters())
+    # get dataloader
+    tmp_a = a
+    results = []
+    if isinstance(a,str) and ('jpg' in a or 'png' in a):
+        a = os.path.dirname(a)
+    if isinstance(a,str):
+        test_dataset = TestDataset(a)
+        Dataloader_test = DataLoader(dataset=test_dataset, batch_size=1, shuffle=True)
+        a_type = 1
+    else:
+        a_type = 0
+
+    device = 'cpu'
+    with torch.no_grad():
+        if a_type == 1:
+            for i, data in enumerate(Dataloader_test, 0):
+                test_haze, name = data
+                print(re.split(r'\\|/',name[0])[-1],re.split(r'\\|/',tmp_a[:-4])[-1])
+                if ('jpg' in tmp_a or 'png' in tmp_a) and re.split(r'\\|/',name[0])[-1] != re.split(r'\\|/',tmp_a[:-4])[-1]:
+                    continue
+                test_haze = test_haze.to(device)
+                hazy_img = test_haze.unsqueeze(0)
+                H, W = hazy_img.shape[2:]
+                hazy_img = pad_img(hazy_img, 4)
+                output = network(hazy_img)
+                output = output.clamp(0, 1)
+                output = output[:, :, :H, :W]
+                results.append(output)
+        else:
+            for image_name in a:
+                trans = transforms.Compose([transforms.ToTensor()])
+                test_haze = trans(Image.open(image_name))
+                test_haze = test_haze.to(device)
+                hazy_img = test_haze.unsqueeze(0)
+                H, W = hazy_img.shape[2:]
+                hazy_img = pad_img(hazy_img, 4)
+                output = network(hazy_img)
+                output = output.clamp(0, 1)
+                output = output[:, :, :H, :W]
+                results.append(output)
+    return results,total_params
+import torchvision.transforms as tfs 
+def FFA_image(images,a):
+    results = []
+    model_dir= 'weights/ots_train_ffa_3_19.pk'
+    device='cuda' if torch.cuda.is_available() else 'cpu'
+    ckp=torch.load(model_dir,map_location=device)
+    net=FFA(gps=3,blocks=19)
+    total_params = sum(p.numel() for p in net.parameters())
+    net=nn.DataParallel(net)
+    net.load_state_dict(ckp['model'])
+    net.eval()
+    for image_name in a:
+        haze = Image.open(image_name)
+        haze1= tfs.Compose([
+            tfs.ToTensor(),
+            tfs.Normalize(mean=[0.64, 0.6, 0.58],std=[0.14,0.15, 0.152])
+        ])(haze)[None,::]
+        haze_no=tfs.ToTensor()(haze)[None,::]
+        with torch.no_grad():
+            pred = net(haze1)
+        ts=torch.squeeze(pred.clamp(0,1).cpu())
+        results.append(ts)
     return results,total_params

@@ -1,0 +1,46 @@
+
+.container {
+  padding: 20px;
+}
+.entry-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f8f8f8;
+  border-radius: 5px;
+}
+.main-content.container {
+  display: flex;
+  flex-direction: column;
+}
+.back-button-container {
+  margin-bottom: 10px; /* 添加一些间距 */
+}
+.entries-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; /* 调整对齐方式 */
+}
+.entry-item {
+  margin: 10px;
+}
+.entry-content {
+  display: flex;
+  flex-direction: column; /* 使图片和文本垂直排列 */
+  align-items: center; /* 居中对齐 */
+}
+.entry-image, .directory-icon {
+  width: 100px; /* 设置图片和图标的宽度 */
+  height: 100px; /* 设置图片和图标的高度 */
+  margin-bottom: 5px; /* 在图片和文本之间添加间距 */
+}
+.directory-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #f0f0f0; /* 添加背景色以便区分 */
+}
+.entry-name {
+  text-align: center; /* 文件名居中对齐 */
+}
+

@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/files/files",
+    "pages/alglist/alglist",
+    "pages/result/result"
+  ],
+  "window": {},
+  "tabBar": {
+    "color": "#909399",
+    "selectedColor": "#2979ff",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/logo.png",
+        "selectedIconPath": "static/sysu.jpg"
+      },
+      {
+        "pagePath": "pages/files/files",
+        "text": "文件",
+        "iconPath": "static/logo.png",
+        "selectedIconPath": "static/sysu.jpg"
+      },
+      {
+        "pagePath": "pages/alglist/alglist",
+        "selectedColor": "#ffffff",
+        "text": "算法",
+        "iconPath": "static/logo.png",
+        "selectedIconPath": "static/sysu.jpg"
+      },
+      {
+        "pagePath": "pages/result/result",
+        "text": "结果",
+        "iconPath": "static/logo.png",
+        "selectedIconPath": "static/sysu.jpg"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

@@ -3,16 +3,16 @@
     <img class="logo" src="../../static/newLogo.png" alt="" srcset="" />
   </view>
   <view class="sidebar-container">
-    <view class="sidebar">
+    <!-- <view class="sidebar"> -->
 <!--      <view class="sidebar-header">
         <img class="sidebar-logo" src="../../static/newLogo.png" alt="" srcset="" />
       </view> -->
-      <view class="sidebar-menu">
-        <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)">
+<!--      <view class="sidebar-menu">
+        <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)" :class="{ active: item.active === true }">
           {{ item.title }}
         </view>
       </view>
-    </view>
+    </view> -->
     <view class="main-content">
         <view class="image-gallery">
           <view class="image-item" v-for="(image, index) in images" :key="index">
@@ -30,10 +30,10 @@ export default {
   data() {
     return {
       sidebarItems: [
-        { title: '单例运行',url:'../index/index' },
-        { title: '文件库',url:'../files/files' },
-        { title: '算法库',url:'../alglist/alglist' },
-        { title: '菜单项4' }
+        { title: '单例运行',url:'../index/index',active:false },
+        { title: '文件库',url:'../files/files',active:false },
+        { title: '算法库',url:'../alglist/alglist',active:true },
+        { title: '运行结果',url:'../result/result',active:false }
       ],
 	  images:[]
     };
@@ -61,13 +61,14 @@ export default {
 .image-gallery {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  height: 150px;
+  justify-content: flex-start;
+  height: 500px;
 }
 
 .image-item {
   width: 18%; /* 设置每张图片的宽度，18% * 5 = 90%，留下10%的间隙 */
-  margin-bottom: 20px; /* 图片之间的垂直间距 */
+  margin-bottom: 50px; /* 图片之间的垂直间距 */
+  margin-right: 20px;
   text-align: center;
 }
 

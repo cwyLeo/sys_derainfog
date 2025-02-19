@@ -19,12 +19,14 @@ export const download = (url) =>{
 	})
 }
 
-export const uploadImage = (filepath) =>{
+export const uploadImage = (filepath,alg_name) =>{
 	return $upload({
 		url:'uploadImage',
 		name:'file',
 		filePath:filepath,
-		method:'POST'
+		data:{
+			name:alg_name
+		}
 	})
 }
 

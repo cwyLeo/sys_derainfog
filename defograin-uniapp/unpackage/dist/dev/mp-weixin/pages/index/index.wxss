@@ -1,0 +1,75 @@
+
+
+/* 主内容区域样式 */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* 图像上传列容器 */
+.image-upload-columns {
+  display: flex;
+  justify-content: space-evenly; /* 使用 space-evenly 来平均分配间距 */
+  width: 100%;
+  max-width: 1200px; /* 根据需要调整最大宽度 */
+  margin-bottom: 40px; /* 按钮与上传区域之间的间距 */
+  background: linear-gradient(to right, #4c4c4c, #333); /* 背景渐变 */
+  padding: 3%;
+  border-radius: 10px; /* 圆角边框 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 更深的阴影效果 */
+}
+
+/* 单个图像上传列 */
+.image-upload-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 45%; /* 减少宽度，为间距留出更多空间 */
+  margin: 0 2%; /* 添加左右外边距 */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* 边框颜色调整 */
+  padding: 1%;
+  background: rgba(255, 255, 255, 0.1); /* 透明背景 */
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px); /* 背景模糊效果 */
+  border-radius: 8px; /* 圆角边框 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加动态效果 */
+}
+.image-upload-column:hover {
+  transform: translateY(-5px); /* 鼠标悬停时轻微上移 */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
+}
+
+
+/* 图像上传标题 */
+.image-upload-header {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* 上传按钮样式 */
+.upload-btn {
+  width: 90%; /* 按钮宽度 */
+  padding: 15px; /* 增加内边距 */
+  font-size: 16px;
+  color: #fff;
+  background-image: linear-gradient(to right, #1e3c72, #2a5298); /* 渐变背景 */
+  border: none;
+  border-radius: 8px; /* 更大的圆角 */
+  cursor: pointer;
+  outline: none; /* 移除聚焦时的轮廓线 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+.upload-btn:hover {
+  transform: translateY(-3px); /* 鼠标悬停时轻微上移 */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
+  background-image: linear-gradient(to right, #2a5298, #1e3c72); /* 鼠标悬停时渐变反向 */
+}
+.upload-btn:active {
+  transform: translateY(0); /* 点击时无上移效果 */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 点击时减少阴影效果 */
+}
+

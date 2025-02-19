@@ -362,3 +362,10 @@ def calculate_metrics(image,imageGT=None):
         return calculate_entropy(image),calculate_mg(image)
     else:
         return calculate_entropy(image),calculate_mg(image),calculate_psnr(image,imageGT),calculate_ssim(image,imageGT)
+    
+def pad_img(x, patch_size):
+    _, _, h, w = x.size()
+    mod_pad_h = (patch_size - h % patch_size) % patch_size
+    mod_pad_w = (patch_size - w % patch_size) % patch_size
+    x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h), 'reflect')
+    return x

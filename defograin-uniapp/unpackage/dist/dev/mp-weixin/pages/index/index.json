@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "htz-image-upload": "../../components/htz-image-upload/htz-image-upload"
+  }
+}

@@ -4,18 +4,28 @@
 	  <img class="logo" src="../../static/newLogo.png" alt="" srcset="" />
 	</view>
 	<view class="sidebar-container">
-	  <view class="sidebar">
+	  <!-- <view class="sidebar"> -->
 	    <!-- <view class="sidebar-header"> -->
 	      <!-- <img class="sidebar-logo" src="../../static/newLogo.png" alt="" srcset="" /> -->
 	    <!-- </view> -->
-	    <view class="sidebar-menu">
-	      <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)">
+<!-- 	    <view class="sidebar-menu">
+	      <view class="sidebar-item" v-for="(item, index) in sidebarItems" :key="index" @click="handleSidebarItemClick(item)" :class="{ active: item.active === true }">
 	        {{ item.title }}
 	      </view>
 	    </view>
-	  </view>
+	  </view> -->
 	  <view class="main-content">
 	    <view class="image-upload-columns">
+			<view class="dropdown-select">
+				<button @click="toggleSelectAll" class="select-button">{{ selectAllText }}</button>
+			    <checkbox-group @change="selectalg">
+			      <label class="checkbox-label" v-for="algorithm in alglist" :key="algorithm.title">
+			        <checkbox :value="algorithm.title" :checked="algorithm.checked"  :class="{ 'is-checked': algorithm.checked }" />
+							  <div class="checkbox-custom"></div>
+			        <text>{{ algorithm.title }}</text>
+			      </label>
+			    </checkbox-group>
+			  </view>
 	      <!-- 源图像输入栏 -->
 	      <view class="image-upload-column">
 	        <view class="image-upload-header">源图像输入</view>
@@ -31,34 +41,87 @@
 	                          @chooseSuccess="chooseSuccessTr" @imgDelete="imgDeleteTr">
 	        </htz-image-upload>
 	      </view>
+		  
+		  
 	    </view>
 	    
 	    <!-- 上传按钮 -->
 	    <button class="upload-btn" @click="uploadImgs">上传图片并执行操作</button>
-		<img v-if="result!=''" :src="result" alt="" srcset="" />
 	  </view>
 	</view>
 	</view>
 </template>
 
 <script>
-	import {uploadImage} from '../../util/api.js'
+	import {uploadImage,getAlg} from '../../util/api.js'
 export default {
 	data() {
 	  return {
 	    sidebarItems: [
-	      { title: '单例运行',url:'../index/index' },
-	      { title: '文件库',url:'../files/files' },
-	      { title: '算法库',url:'../alglist/alglist' },
-	      { title: '菜单项4' }
+	      { title: '单例运行',url:'../index/index',active:true },
+	      { title: '文件库',url:'../files/files',active:false },
+	      { title: '算法库',url:'../alglist/alglist',active:false },
+	      { title: '运行结果',url:'../result/result',active:false }
 	    ],
 		imageUrl:'',
 		pb_imgs:[],
 		tr_imgs:[],
-		result:''
+		result:'',
+		alglist: [
+		      { value: 'algorithm1', text: '算法1' },
+		      { value: 'algorithm2', text: '算法2' },
+		      // 更多算法选项...
+		    ],
+		    selectedAlgorithms: [],
+			multi: []
 	  };
 	},
+	onLoad() {
+		getAlg().then(res=>{
+				  console.log(res)
+				  this.alglist = res.data.algs
+				  for(var i = 0; i < this.alglist.length; i++){
+					  this.alglist[i].checked = false
+				  }
+				  console.log(this.alglist)
+		})
+		
+	},
+	computed: {
+	    // 计算属性，根据alglist的状态返回相应的按钮文字
+	    selectAllText() {
+	      const allChecked = this.alglist.every(algorithm => algorithm.checked);
+	      return allChecked ? '取消全选' : '全选';
+	    }
+	  },
   methods: {
+	  selectalg(e){
+		        const selectedTitles = e.detail.value;
+		        this.alglist.forEach(algorithm => {
+		          algorithm.checked = selectedTitles.includes(algorithm.title);
+		        });
+	  	this.selectedAlgorithms = []
+	  	for(let i  = 0; i < this.alglist.length; i++){
+	  		if(this.alglist[i].checked){
+	  			this.selectedAlgorithms.push(this.alglist[i].title)
+	  		}
+	  	}
+		console.log(this.selectedAlgorithms,this.alglist)
+	  },
+	  toggleSelectAll() {
+		  const allChecked = this.alglist.every(algorithm => algorithm.checked);
+		        this.alglist.forEach(algorithm => {
+		          algorithm.checked = !allChecked;
+		        });
+	        if (this.selectedAlgorithms.length === this.alglist.length) {
+	          // 如果所有项都被选中，则取消全选
+	          this.selectedAlgorithms = [];
+	        } else {
+	          // 否则，全选所有项
+	          this.selectedAlgorithms = this.alglist.map(algorithm => algorithm.title);
+	        }
+			console.log(this.selectedAlgorithms)
+	      },
 	  handleSidebarItemClick(item) {
 	    // 处理侧边栏菜单项点击事件
 	    console.log('点击了菜单项:', item);
@@ -131,13 +194,21 @@ export default {
 	upload(imagePath){
 		var _this = this	
 			
-		return uploadImage(imagePath).then(res1=>{
+		return uploadImage(imagePath,this.selectedAlgorithm).then(res1=>{
 			console.log('上传操作',res1)
 			if(res1.code != 200){
 				//_this.$u.toast('图片上次失败')
 				console.log('图片',imagePath,'上传失败')
 				return false;
 			}
+			this.result = res1.file_url
+			getApp().globalData.result_url = encodeURIComponent(JSON.stringify(res1.file_urls))
+			// uni.navigateTo({
+			// 	url:'../result/result?files='+encodeURIComponent(JSON.stringify(res1.file_urls))
+			// })
+			uni.switchTab({
+				url:'../result/result'
+			})
 			return res1.file_url;
 		})
 	}
@@ -153,7 +224,106 @@ export default {
   align-items: center;
   width: 100%;
 }
+/* 基础样式 */
+.dropdown-select {
+  display: flex; /* 使用 Flexbox 布局 */
+  flex-direction: row; /* 子元素按行排列 */
+  align-items: center; /* 垂直居中对齐 */
+}
+.dropdown-select {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 对齐到容器的起始位置 */
+}
 
+.select-button {
+  width: 100px; /* 固定宽度 */
+  padding: 2px 10px; /* 内边距 */
+  margin-bottom: 10px;
+  font-size: 16px; /* 字体大小 */
+  color: #fff; /* 文字颜色 */
+  text-align: center; /* 文字居中 */
+  text-decoration: none; /* 去除下划线 */
+  display: inline-block; /* 行内块元素 */
+  white-space: nowrap; /* 防止文本换行 */
+  overflow: hidden; /* 超出部分隐藏 */
+  text-overflow: ellipsis; /* 超出部分显示省略号 */
+  border: none; /* 无边框 */
+  border-radius: 25px; /* 圆角边框 */
+  background-image: linear-gradient(to right, #003214, #005825); /* 渐变背景 */
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); /* 阴影效果 */
+  cursor: pointer; /* 鼠标样式 */
+  transition: all 0.3s ease; /* 过渡效果 */
+}
+
+.select-button:hover {
+  background-image: linear-gradient(to right, #003214, #005825); /* 鼠标悬停时的渐变背景 */
+  transform: translateY(-3px); /* 鼠标悬停时的轻微上移效果 */
+  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2), 0 8px 24px 0 rgba(0, 0, 0, 0.19); /* 鼠标悬停时的阴影效果 */
+}
+
+.select-button:active {
+  transform: translateY(0); /* 点击时的效果，取消上移 */
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 4px 8px 0 rgba(0, 0, 0, 0.19); /* 点击时的阴影效果 */
+}
+.checkbox-label {
+  display: flex;
+  align-items: center; /* 垂直居中对齐复选框和文字 */
+  margin-bottom: 5px; /* 在每个复选框之间添加一些间距 */
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin: 8px 0;
+}
+
+/* 隐藏原生的 checkbox */
+.checkbox-label checkbox {
+  display: none;
+}
+
+/* 创建自定义的 checkbox 样式 */
+.checkbox-label .checkbox-custom {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+/* 选中状态下的 checkbox 样式 */
+.checkbox-label checkbox.is-checked + .checkbox-custom {
+  background-color: #005825;
+}
+
+/* 添加勾选图标 */
+.checkbox-label checkbox.is-checked + .checkbox-custom::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 8px;
+  height: 14px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* 文本样式 */
+.checkbox-label text {
+  margin-left: 8px;
+  font-size: 16px;
+  color: #4c4c4c;
+}
+
+/* 交互效果 */
+.checkbox-label:hover .checkbox-custom {
+  background-color: #999;
+}
 /* 图像上传列容器 */
 .image-upload-columns {
   display: flex;
@@ -161,8 +331,8 @@ export default {
   width: 100%;
   max-width: 1200px; /* 根据需要调整最大宽度 */
   margin-bottom: 40px; /* 按钮与上传区域之间的间距 */
-  background: linear-gradient(to right, #4c4c4c, #333); /* 背景渐变 */
-  padding: 20px;
+  background: linear-gradient(to right, #55ffff, #00aaff); /* 背景渐变 */
+  padding: 3%;
   border-radius: 10px; /* 圆角边框 */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 更深的阴影效果 */
 }
@@ -173,10 +343,10 @@ export default {
   flex-direction: column;
   align-items: center;
   width: 45%; /* 减少宽度，为间距留出更多空间 */
-  margin: 0 20px; /* 添加左右外边距 */
-  border: 1px solid rgba(255, 255, 255, 0.2); /* 边框颜色调整 */
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1); /* 透明背景 */
+  margin: 0 2%; /* 添加左右外边距 */
+  border: 1px solid rgba(84, 84, 84, 0.2); /* 边框颜色调整 */
+  padding: 1%;
+  background: rgba(0, 170, 0, 0.1); /* 透明背景 */
   backdrop-filter: blur(10px); /* 背景模糊效果 */
   border-radius: 8px; /* 圆角边框 */
   transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加动态效果 */
@@ -201,7 +371,7 @@ export default {
   padding: 15px; /* 增加内边距 */
   font-size: 16px;
   color: #fff;
-  background-image: linear-gradient(to right, #1e3c72, #2a5298); /* 渐变背景 */
+  background-image: linear-gradient(to right, #003214, #005825); /* 渐变背景 */
   border: none;
   border-radius: 8px; /* 更大的圆角 */
   cursor: pointer;
@@ -213,12 +383,14 @@ export default {
 .upload-btn:hover {
   transform: translateY(-3px); /* 鼠标悬停时轻微上移 */
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
-  background-image: linear-gradient(to right, #2a5298, #1e3c72); /* 鼠标悬停时渐变反向 */
+  background-image: linear-gradient(to right, #005825, #003214); /* 鼠标悬停时渐变反向 */
 }
 
 .upload-btn:active {
   transform: translateY(0); /* 点击时无上移效果 */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 点击时减少阴影效果 */
 }
-
+.result{
+	width: 80vw;
+}
 </style>
