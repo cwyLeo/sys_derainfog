@@ -51,7 +51,7 @@ def gan_image(images,a):
     results = []
     if torch.cuda.is_available():
         model = Generator().cuda()
-        model.load_state_dict(torch.load('./weights/gen.pkl'))
+        model.load_state_dict(torch.load('./weights/gen.pkl',weights_only=True))
     else:
         model = Generator()
         model.load_state_dict(torch.load('./weights/gen.pkl',map_location='cpu'))

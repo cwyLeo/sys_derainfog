@@ -19,20 +19,31 @@ export const download = (url) =>{
 	})
 }
 
-export const uploadImage = (filepath,alg_name) =>{
+export const uploadImage = (filepath,alg_names,activeOperation) =>{
 	return $upload({
 		url:'uploadImage',
 		name:'file',
 		filePath:filepath,
 		data:{
-			name:alg_name
+			name:alg_names,
+			operation:activeOperation
 		}
 	})
 }
 
-export const getFolders = (path) =>{
+export const getFolders = (path,mode) =>{
 	return $request({
 		url:'folders',
+		data:{
+			path:path,
+			mode:mode
+		}
+	})
+}
+
+export const getHistory = (path) =>{
+	return $request({
+		url:'history',
 		data:{
 			path:path
 		}
@@ -51,5 +62,16 @@ export const getImage = (imagePath) =>{
 export const getAlg = () => {
 	return $request({
 		url:'get_alg'
+	})
+}
+
+export const changeFolderName = (folder, newName) => {
+	return $request({
+		url:'rename',
+		data:{
+			folder:folder,
+			newName:newName
+		},
+		method:'POST'
 	})
 }

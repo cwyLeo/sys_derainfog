@@ -14,8 +14,12 @@
       </view>
     </view> -->
     <view class="main-content">
+		<view class="operation-options">
+		    <button class="operation-btn" :class="{ 'is-active': activeOperation === 'derain' }" @click="setOperation('derain')">去雨</button>
+		    <button class="operation-btn" :class="{ 'is-active': activeOperation === 'defog' }" @click="setOperation('defog')">去雾</button>
+		  </view>
         <view class="image-gallery">
-          <view class="image-item" v-for="(image, index) in images" :key="index">
+          <view class="image-item" v-for="(image, index) in filteredAlgList" :key="index">
             <image class="image" :src="image.url" mode="aspectFit"></image>
             <a :href="image.paper" class="title" target="_blank">{{ image.title }}</a>
           </view>
@@ -29,6 +33,7 @@
 export default {
   data() {
     return {
+	  activeOperation: 'derain',
       sidebarItems: [
         { title: '单例运行',url:'../index/index',active:false },
         { title: '文件库',url:'../files/files',active:false },
@@ -45,7 +50,15 @@ export default {
 		  
 	  })
   },
+  computed:{
+	  filteredAlgList() {
+	  	return this.images.filter(algorithm => algorithm.operation === this.activeOperation);
+	  }
+  },
   methods: {
+	  setOperation(operation) {
+	        this.activeOperation = operation;
+	      },
     handleSidebarItemClick(item) {
       // 处理侧边栏菜单项点击事件
       console.log('点击了菜单项:', item);
@@ -58,6 +71,35 @@ export default {
 </script>
  
 <style>
+.operation-options {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.operation-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  background-color: white; /* 主题色 */
+  color: #005825;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.operation-btn.is-active {
+  background-color: #005825; /* 选中时的颜色 */
+  color: white; /* 文字颜色与主题色相反 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* 更深的阴影效果 */
+}
+
+.operation-btn:hover:not(.is-active) {
+  background-color: #00832a; /* 按钮悬停时的颜色 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 加强阴影效果 */
+  color: white;
+}
 .image-gallery {
   display: flex;
   flex-wrap: wrap;

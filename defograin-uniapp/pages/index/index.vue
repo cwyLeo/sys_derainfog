@@ -15,11 +15,15 @@
 	    </view>
 	  </view> -->
 	  <view class="main-content">
+		  <view class="operation-options">
+		      <button class="operation-btn" :class="{ 'is-active': activeOperation === 'derain' }" @click="setOperation('derain')">去雨</button>
+		      <button class="operation-btn" :class="{ 'is-active': activeOperation === 'defog' }" @click="setOperation('defog')">去雾</button>
+		    </view>
 	    <view class="image-upload-columns">
 			<view class="dropdown-select">
 				<button @click="toggleSelectAll" class="select-button">{{ selectAllText }}</button>
 			    <checkbox-group @change="selectalg">
-			      <label class="checkbox-label" v-for="algorithm in alglist" :key="algorithm.title">
+			      <label class="checkbox-label" v-for="algorithm in filteredAlgList" :key="algorithm.title">
 			        <checkbox :value="algorithm.title" :checked="algorithm.checked"  :class="{ 'is-checked': algorithm.checked }" />
 							  <div class="checkbox-custom"></div>
 			        <text>{{ algorithm.title }}</text>
@@ -63,6 +67,7 @@ export default {
 	      { title: '算法库',url:'../alglist/alglist',active:false },
 	      { title: '运行结果',url:'../result/result',active:false }
 	    ],
+		activeOperation: 'derain',
 		imageUrl:'',
 		pb_imgs:[],
 		tr_imgs:[],
@@ -90,11 +95,19 @@ export default {
 	computed: {
 	    // 计算属性，根据alglist的状态返回相应的按钮文字
 	    selectAllText() {
-	      const allChecked = this.alglist.every(algorithm => algorithm.checked);
+	      const allChecked = this.alglist.filter(algorithm => algorithm.operation === this.activeOperation).every(algorithm => algorithm.checked);
 	      return allChecked ? '取消全选' : '全选';
-	    }
+	    },
+		filteredAlgList() {
+			return this.alglist.filter(algorithm => algorithm.operation === this.activeOperation);
+		}
 	  },
   methods: {
+	  setOperation(operation) {
+	        this.activeOperation = operation;
+			this.selectedAlgorithms = [];
+			this.alglist.forEach(algorithm => algorithm.checked = false);
+	      },
 	  selectalg(e){
 		        const selectedTitles = e.detail.value;
 		        this.alglist.forEach(algorithm => {
@@ -109,16 +122,17 @@ export default {
 		console.log(this.selectedAlgorithms,this.alglist)
 	  },
 	  toggleSelectAll() {
-		  const allChecked = this.alglist.every(algorithm => algorithm.checked);
-		        this.alglist.forEach(algorithm => {
+		  var tmpalglist = this.alglist.filter(algorithm => algorithm.operation === this.activeOperation)
+		  const allChecked = tmpalglist.every(algorithm => algorithm.checked);
+		        tmpalglist.forEach(algorithm => {
 		          algorithm.checked = !allChecked;
 		        });
-	        if (this.selectedAlgorithms.length === this.alglist.length) {
+	        if (this.selectedAlgorithms.length === tmpalglist.length) {
 	          // 如果所有项都被选中，则取消全选
 	          this.selectedAlgorithms = [];
 	        } else {
 	          // 否则，全选所有项
-	          this.selectedAlgorithms = this.alglist.map(algorithm => algorithm.title);
+	          this.selectedAlgorithms = tmpalglist.map(algorithm => algorithm.title);
 	        }
 			console.log(this.selectedAlgorithms)
 	      },
@@ -194,7 +208,7 @@ export default {
 	upload(imagePath){
 		var _this = this	
 			
-		return uploadImage(imagePath,this.selectedAlgorithm).then(res1=>{
+		return uploadImage(imagePath,this.selectedAlgorithms,this.activeOperation).then(res1=>{
 			console.log('上传操作',res1)
 			if(res1.code != 200){
 				//_this.$u.toast('图片上次失败')
@@ -202,7 +216,7 @@ export default {
 				return false;
 			}
 			this.result = res1.file_url
-			getApp().globalData.result_url = encodeURIComponent(JSON.stringify(res1.file_urls))
+			getApp().globalData.result_url = encodeURIComponent(JSON.stringify(res1.folder_name))
 			// uni.navigateTo({
 			// 	url:'../result/result?files='+encodeURIComponent(JSON.stringify(res1.file_urls))
 			// })
@@ -223,6 +237,36 @@ export default {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  align-items: center;
+}
+.operation-options {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.operation-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  background-color: white; /* 主题色 */
+  color: #005825;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.operation-btn.is-active {
+  background-color: #005825; /* 选中时的颜色 */
+  color: white; /* 文字颜色与主题色相反 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* 更深的阴影效果 */
+}
+
+.operation-btn:hover:not(.is-active) {
+  background-color: #00832a; /* 按钮悬停时的颜色 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 加强阴影效果 */
+  color: white;
 }
 /* 基础样式 */
 .dropdown-select {
@@ -331,7 +375,7 @@ export default {
   width: 100%;
   max-width: 1200px; /* 根据需要调整最大宽度 */
   margin-bottom: 40px; /* 按钮与上传区域之间的间距 */
-  background: linear-gradient(to right, #55ffff, #00aaff); /* 背景渐变 */
+  background: linear-gradient(to right, #99ef99, #005825); /* 背景渐变 */
   padding: 3%;
   border-radius: 10px; /* 圆角边框 */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 更深的阴影效果 */
@@ -344,9 +388,9 @@ export default {
   align-items: center;
   width: 45%; /* 减少宽度，为间距留出更多空间 */
   margin: 0 2%; /* 添加左右外边距 */
-  border: 1px solid rgba(84, 84, 84, 0.2); /* 边框颜色调整 */
+  border: 1px solid rgba(0, 130, 37, 0.2);; /* 边框颜色调整 */
   padding: 1%;
-  background: rgba(0, 170, 0, 0.1); /* 透明背景 */
+  background: rgba(0, 130, 37, 0.1); /* 透明背景 */
   backdrop-filter: blur(10px); /* 背景模糊效果 */
   border-radius: 8px; /* 圆角边框 */
   transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加动态效果 */
@@ -354,7 +398,7 @@ export default {
 
 .image-upload-column:hover {
   transform: translateY(-5px); /* 鼠标悬停时轻微上移 */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
+  box-shadow: 0 10px 20px  rgba(0, 130, 37, 0.3); /* 鼠标悬停时加深阴影 */
 }
 
 
@@ -363,6 +407,8 @@ export default {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
+  color: #ffffff; 
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* 上传按钮样式 */

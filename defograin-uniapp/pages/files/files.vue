@@ -17,8 +17,8 @@
     <view v-if="currentPath !== ''" class="back-button-container">
       <button @click="goBack">返回上一级</button>
     </view>
-    <view class="entries-container">
-      <view v-for="(entry, index) in filesAndFolders" :key="index" class="entry-item">
+    <view class="entries-container" @scroll="handleScroll()">
+      <view v-for="(entry, index) in paginatedFilesAndFolders" :key="index" class="entry-item">
 
 			<view v-if="entry.type === 'file'" class="entry-content">
 				<image v-if="entry.type === 'file'" :src="entry.url" class="entry-image" mode="aspectFit" @click="downloadFile(entry.url,entry.name)"></image>
@@ -32,8 +32,14 @@
           
 
       </view>
+	      <!-- 分页控制按钮 -->
+	      
 	  <!-- <div class="placeholder"></div> -->
     </view>
+	<view class="pagination-controls">
+	  <button @click="previousPage" :disabled="currentPage === 1">上一页</button>
+	  <button @click="nextPage" :disabled="currentPage >= totalPages">下一页</button>
+	</view>
   </view>
   </view>
 </template>
@@ -51,13 +57,76 @@ export default {
       ],
 	  filesAndFolders:[],
 	  currentPath:'',
-	  entries:[]
+	  entries:[],
+	  currentPage: 1,
+	  pageSize: 8,
+	  entryHeight: 200,
+	  itemHeight:'100px'
     };
   },
+  onMounted() {
+      this.adjustEntryItemHeight();
+      // 监听窗口尺寸变化
+      uni.onWindowResize((res) => {
+        this.adjustEntryItemHeight();
+      });
+    },
+  onLoad() {
+  	this.fetchFilesAndFolders('');
+  },
+  computed:{
+	  totalPages() {
+	        return Math.ceil(this.filesAndFolders.length / this.pageSize);
+	      },
+	      paginatedFilesAndFolders() {
+	        const start = (this.currentPage - 1) * this.pageSize;
+	        const end = start + this.pageSize;
+	        return this.filesAndFolders.slice(start, end);
+	      },
+  },
   mounted() {
-	  this.fetchFilesAndFolders('');
+	  this.fetchFilesAndFolders(this.currentPath);
   },
   methods: {
+	  adjustEntryItemHeight() {
+	        // 获取窗口高度
+	        const systemInfo = uni.getSystemInfoSync();
+	        const windowHeight = systemInfo.windowHeight;
+	        // 假设你想要分配给每个entry-item的高度是窗口高度的1/5
+	        const itemHeight = `${windowHeight / 15}px`;
+	        this.itemHeight = itemHeight;
+	      },
+	    onBeforeUnmount() {
+	      // 移除窗口尺寸变化监听
+	      uni.offWindowResize();
+	    },
+	  handleScroll(event) {
+	        const { scrollTop, scrollHeight, clientHeight } = event.target;
+	        if (scrollTop + clientHeight === scrollHeight) {
+	          this.nextPage();
+	        }
+	      },
+	       // 平滑滚动到页面顶部
+	        scrollToTop() {
+	          window.scrollTo({
+	            top: 0,
+	            behavior: 'smooth'
+	          });
+	        },
+	      
+	        // 修改nextPage和previousPage方法，添加滚动到顶部
+	        nextPage() {
+	          if (this.currentPage < this.totalPages) {
+	            this.currentPage++;
+	            this.scrollToTop();
+	          }
+	        },
+	        previousPage() {
+	          if (this.currentPage > 1) {
+	            this.currentPage--;
+	            this.scrollToTop();
+	          }
+	        },
     handleSidebarItemClick(item) {
       // 处理侧边栏菜单项点击事件
       console.log('点击了菜单项:', item);
@@ -73,7 +142,7 @@ export default {
 	    },
 	fetchFilesAndFolders(path) {
 		console.log(process.env.VUE_APP_SERVER_URL)
-	      getFolders(path).then(res=>{
+	      getFolders(path,'').then(res=>{
 			  this.filesAndFolders = res.data
 			  this.entries = res.data
 			  console.log(this.entries)
@@ -83,6 +152,7 @@ export default {
 	          let newPath = this.currentPath ? `${this.currentPath}/${folderName}` : folderName;
 	          this.fetchFilesAndFolders(newPath);
 	          this.currentPath = newPath;
+			  this.currentPage = 1;
 	        },
 	    goBack() {
 	      let pathParts = this.currentPath.split('/');
@@ -147,16 +217,69 @@ export default {
   display: flex;
   flex-wrap: wrap;
   /* align-items: center; */
-  height: 500px;
+  /* height: 500px; */
   justify-content: flex-start;
+  overflow-y: hidden;
+}
+
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  height: 7vh;
+}
+
+.pagination-controls button {
+  background-color: #008225; /* 科技感的蓝色 */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pagination-controls button:hover {
+  background-color: #009000; /* 悬停时颜色加深 */
+}
+
+.pagination-controls button:active {
+  transform: scale(0.9); /* 点击时缩小效果 */
+}
+
+.pagination-controls button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(120deg, transparent, transparent 50%, rgba(255, 255, 255, 0.1));
+  background-size: 300% 300%;
+  transition: background-position 0.2s ease;
+  pointer-events: none;
+}
+
+.pagination-controls button:hover::before {
+  background-position: 100% 100%;
+}
+
+/* 翻页按钮禁用时的样式 */
+.pagination-controls button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 .entry-item {
-  margin-bottom: 50px;
-  margin-right: 20px;
-  /* height: 20vh; */
+  height: var(--entry-item-height);
+  margin-bottom: 1%;
+  margin-right: 1%;
+  height: 25vh;
   /* min-width: 10vw; */
-  width: 18%;
-  min-width: 200px;
+  width: 24%;
+  min-width: 150px;
   /* min-height: 100px; */
   object-fit: contain;
   text-align: center;
@@ -169,8 +292,8 @@ export default {
   /* height: 50%; */
   /* max-width: 8vw; */
   /* min-width: 100px; */
-  /* max-height: 100%; */
-  height: 100%;
+  max-height: 40%;
+  /* height: 100%; */
   width: 100%;
   display: block;
   /* object-fit: contain; */

@@ -19,6 +19,7 @@ import subprocess
 import json
 import derain_predict
 import webbrowser
+from datetime import datetime
 from flask_cors import *
 
 
@@ -39,6 +40,8 @@ uploadGTDir = os.path.join(basedir, 'static/uploads_GT')
 reusltDir = os.path.join(basedir,'static/results')
 uploadDir = os.path.join(basedir,'static/uploads_main')
 pdfDir = os.path.join(basedir,'static')
+defogDir = os.path.join(uploadDir,'defog')
+derainDir = os.path.join(uploadDir,'derain')
 
 
 def create_pdf_with_images(a,b,combined_list, output_filename):
@@ -496,20 +499,35 @@ def uploadImage():
     resultUrls = []
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
+    if not os.path.exists(defogDir):
+        os.makedirs(defogDir)
+    if not os.path.exists(derainDir):
+        os.makedirs(derainDir)
     if 'file' not in request.files:
         return '没有文件部分'
     file = request.files['file']
-    print(request.form)
-    alg_name = request.form['name']
+    alg_names = request.form['name']
+    operation = request.form['operation']
+    selectedDir = os.path.join(uploadDir,operation)
     if file.filename == '':
         return '没有选择文件'
     if file:
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        folder_name = os.path.join(selectedDir,f'upload_{current_time}')
+        folder_name = folder_name.replace('\\', '/')
+        try:
+            os.makedirs(folder_name)
+            result = f"文件夹 '{folder_name}' 已成功创建。"
+        except Exception as e:
+            result = f"创建文件夹时出错: {e}"
+        print(result)
         old_filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], old_filename)
+        file_path = os.path.join(folder_name, old_filename)
         file.save(file_path)
         file_path = file_path.replace('\\', '/')
         img = cv2.imread(file_path)
-        outputs = dehaze(img,file_path,alg_name)
+        print(img,file_path)
+        outputs = dehaze(img,file_path,alg_names,operation)
         # outputs,_ = deeplearning.SDA_image([file],[file_path])
         # mod = 'SDA'
         # for index,output in enumerate(outputs):
@@ -517,7 +535,7 @@ def uploadImage():
                 tmp = old_filename.split('.')[0].split('\\')[-1]
                 tmp2 = old_filename.split('.')[-1]
                 filename = f'{tmp}_{mod}.{tmp2}'
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file_path = os.path.join(folder_name, filename)
                 file_path = file_path.replace('\\', '/')
                 if torch.is_tensor(output):
                     torchvision.utils.save_image(output,file_path)
@@ -526,7 +544,7 @@ def uploadImage():
                         tmp3 = filename.split('.')[-1]
                         f.write(cv2.imencode(f'.{tmp3}',output)[1].tobytes())
                 resultUrls.append(request.host_url + file_path)
-        return jsonify({'file_urls':resultUrls,'file_url':resultUrls[0],'code':200})
+        return jsonify({'file_urls':resultUrls,'file_url':resultUrls[0],'folder_name':folder_name,'code':200})
         # 解压文件
         if allowed_zip(file.filename):
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
@@ -608,6 +626,7 @@ def toalg():
 def get_folders():
     olds = '/'
     folder_path = request.args.get('path', default='', type=str)
+    mode = request.args.get('mode', default='', type=str)
     if not folder_path:
         folder_path = uploadDir
     else:
@@ -615,6 +634,8 @@ def get_folders():
             olds = ''
         else:
             olds = folder_path + olds
+        if mode != '':
+            folder_path = os.path.join('de' + mode,folder_path)
         folder_path = os.path.join(uploadDir, folder_path)
     # 确保用户不会访问到基础路径之外的文件
     if not os.path.commonprefix([uploadDir, folder_path]) == uploadDir:
@@ -630,13 +651,52 @@ def get_folders():
             if os.path.isdir(entry_path):
                 files_and_folders.append({'name': entry, 'type': 'directory', 'url':f'{host_ip}/static/show/box.png'})
             elif re.findall(r'(jpg|jpeg|png|gif|bmp)',entry.lower()):
-                files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/uploads_main/{olds}{entry}'})
+                if mode == '':
+                    files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/uploads_main/{olds}{entry}'})
+                else:
+                    files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/uploads_main/de{mode}/{olds}{entry}'})
             else:
                 files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/show/undefined.png'})
         return jsonify(files_and_folders)
     except FileNotFoundError:
         return jsonify({'error': 'File not found'}), 404
-    
+
+@app.route('/history', methods=['GET'])
+def get_history():
+    # olds = '/'
+    # folder_path = request.args.get('path', default='', type=str)
+    # if not folder_path:
+    #     folder_path = uploadDir
+    # else:
+    #     if folder_path == '':
+    #         olds = ''
+    #     else:
+    #         olds = folder_path + olds
+    for folder_mode in ['defog','derain']:
+        folder_path = os.path.join(uploadDir, folder_mode)
+        # 确保用户不会访问到基础路径之外的文件
+        if not os.path.commonprefix([uploadDir, folder_path]) == uploadDir:
+            return jsonify({'error': 'Invalid path'}), 400
+
+        try:
+            entries = os.listdir(folder_path)
+            files_and_folders = []
+            host_ip = request.host_url
+            port = 5000
+            for entry in entries:
+                if not entry.startswith('upload_'):
+                    continue
+                entry_path = os.path.join(folder_path, entry)
+                if os.path.isdir(entry_path):
+                    files_and_folders.append({'name': entry[7:], 'type': 'directory', 'mode':folder_mode[2:],'url':f'{host_ip}/static/show/box.png'})
+                elif re.findall(r'(jpg|jpeg|png|gif|bmp)',entry.lower()):
+                    files_and_folders.append({'name': entry, 'mode': folder_mode[2:], 'type': 'file', 'url':f'{host_ip}/static/uploads_main/{folder_mode}/{entry}'})
+                else:
+                    files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/show/undefined.png'})
+            return jsonify(files_and_folders)
+        except FileNotFoundError:
+            return jsonify({'error': 'File not found'}), 404
+
 @app.route('/get_image',methods=['GET'])
 def get_image():
     imageName = request.args.get('path', default='', type=str)
@@ -647,25 +707,43 @@ def get_image():
 def get_alg():
     result = []
     host_ip = request.host_url
-    modules = dir(deeplearning)
+    modules = dir(deeplearning) + dir(derain_predict)
     for mod in modules:
         if re.findall(r'\_image$',mod):
-            result.append({'url':f'{host_ip}/static/show/alg_net/{mod[:-6]}.png','title':mod[:-6],'paper':f'{host_ip}/static/show/alg_net/{mod[:-6]}.pdf'})
+            if mod in dir(deeplearning):
+                result.append({'url':f'{host_ip}/static/show/alg_net/{mod[:-6]}.png','title':mod[:-6],'paper':f'{host_ip}/static/show/alg_net/{mod[:-6]}.pdf','operation':'defog'})
+            else:
+                result.append({'url':f'{host_ip}/static/show/alg_net/{mod[:-6]}.png','title':mod[:-6],'paper':f'{host_ip}/static/show/alg_net/{mod[:-6]}.pdf','operation':'derain'})
     return jsonify({'algs':result})
 
+@app.route('/rename',methods=['POST'])
+def change_name():
+    print(request.form['folder'])
+    oldName = request.form['folder']
+    newName = request.form['newName']
+    old_folder_path = os.path.join(uploadDir,f'upload_{oldName}')
+    new_folder_path = os.path.join(uploadDir,f'upload_{newName}')
+    print(old_folder_path)
+    if os.path.exists(old_folder_path):
+        # 重命名文件夹
+        os.rename(old_folder_path, new_folder_path)
+        return jsonify({'success': True, 'message': 'Folder name updated successfully.'})
+    else:
+        return jsonify({'success': False, 'message': 'Folder not found.'}), 404
+
 @app.route('/dehaze',methods=['POST'])
-def dehaze(file,path,alg_name):
+def dehaze(file,path,alg_names,operation):
     results = {}
-    modules = dir(deeplearning) + dir(physical)
+    modules = dir(deeplearning) + dir(derain_predict)
     for mod in modules:
         if re.findall(r'_image$',mod):
-            if mod in dir(physical):
-                func = getattr(physical,mod)
-            else:
+            if mod in dir(derain_predict) and operation == 'derain':
+                func = getattr(derain_predict,mod)
+            elif mod in dir(deeplearning) and operation == 'defog':
                 func = getattr(deeplearning,mod)
         else:
             continue
-        if alg_name not in mod:
+        if mod[:-6] not in alg_names:
             continue
         outputs,_ = func([file],[path])
         results[mod[:-6]] = outputs[0]
