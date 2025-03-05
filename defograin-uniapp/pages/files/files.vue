@@ -21,31 +21,46 @@
       <view v-for="(entry, index) in paginatedFilesAndFolders" :key="index" class="entry-item">
 
 			<view v-if="entry.type === 'file'" class="entry-content">
-				<image v-if="entry.type === 'file'" :src="entry.url" class="entry-image" mode="aspectFit" @click="downloadFile(entry.url,entry.name)"></image>
+				<image v-if="entry.type === 'file'" :src="entry.url" class="entry-image" mode="aspectFit"></image>
 				<text @click="downloadFile(entry.url,entry.name)" class="entry-name">{{ entry.name }}</text>
 			</view>
           
          <view v-else  @click="entry.type === 'directory' ? enterFolder(entry.name) : null" class="entry-content">
             <image :src="entry.url" class="entry-image" mode="aspectFit"></image>
 			<text v-if="entry.type === 'directory'" class="entry-name">{{ entry.name }}</text>
+			<button v-if="entry.input_type=='gh'" class="process-folder-btn" @click.stop="processFolderContent(entry.name,'derain')">去雨</button>
+			<button v-if="entry.input_type=='gh'" class="process-folder-btn2" @click.stop="processFolderContent(entry.name,'defog')">去雾</button>
           </view>
           
 
       </view>
-	      <!-- 分页控制按钮 -->
-	      
-	  <!-- <div class="placeholder"></div> -->
     </view>
 	<view class="pagination-controls">
 	  <button @click="previousPage" :disabled="currentPage === 1">上一页</button>
 	  <button @click="nextPage" :disabled="currentPage >= totalPages">下一页</button>
 	</view>
   </view>
+      <view v-if="showDropdown" class="dropdown-popup">
+        <view class="dropdown-content">
+          <button @click="closeDropdown" class="cancel-button">取消</button>
+      <checkbox-group @change="selectalg">
+        <label class="checkbox-label" v-for="algorithm in filteredAlgList" :key="algorithm.title">
+          <checkbox :value="algorithm.title" :checked="algorithm.checked"  :class="{ 'is-checked': algorithm.checked }" />
+  				  <div class="checkbox-custom"></div>
+          <text>{{ algorithm.title }}</text>
+        </label>
+		<label class=" upload-button-label">
+		            <button @click="uploadFiles" class="upload-button">上传文件</button>
+		          </label>
+      </checkbox-group>
+          <button @click="toggleSelectAll" class="select-all-button">{{ selectAllText }}</button>
+        </view>
+      </view>
   </view>
 </template>
  
 <script>
-	import {getFolders,getImage,download2} from '../../util/api.js'
+	import {getFolders,getImage,download2,getAlg,uploadFolders} from '../../util/api.js'
 export default {
   data() {
     return {
@@ -56,12 +71,18 @@ export default {
         { title: '运行结果',url:'../result/result',active:false }
       ],
 	  filesAndFolders:[],
+	  alglist:[],
 	  currentPath:'',
+	  showActionSheet:true,
 	  entries:[],
 	  currentPage: 1,
 	  pageSize: 8,
 	  entryHeight: 200,
-	  itemHeight:'100px'
+	  itemHeight:'100px',
+	  activeOperation: 'derain',
+	  selectedAlgorithms: [],
+	  showDropdown:false,
+	  selectedFolderName:''
     };
   },
   onMounted() {
@@ -73,6 +94,14 @@ export default {
     },
   onLoad() {
   	this.fetchFilesAndFolders('');
+	getAlg().then(res=>{
+			  console.log(res)
+			  this.alglist = res.data.algs
+			  for(var i = 0; i < this.alglist.length; i++){
+				  this.alglist[i].checked = false
+			  }
+			  console.log(this.alglist)
+	})
   },
   computed:{
 	  totalPages() {
@@ -83,6 +112,13 @@ export default {
 	        const end = start + this.pageSize;
 	        return this.filesAndFolders.slice(start, end);
 	      },
+		  selectAllText() {
+		    const allChecked = this.alglist.filter(algorithm => algorithm.operation === this.activeOperation).every(algorithm => algorithm.checked);
+		    return allChecked ? '取消全选' : '全选';
+		  },
+		  filteredAlgList() {
+		  	return this.alglist.filter(algorithm => algorithm.operation === this.activeOperation);
+		  }
   },
   mounted() {
 	  this.fetchFilesAndFolders(this.currentPath);
@@ -127,6 +163,50 @@ export default {
 	            this.scrollToTop();
 	          }
 	        },
+			selectalg(e){
+					        const selectedTitles = e.detail.value;
+					        this.alglist.forEach(algorithm => {
+					          algorithm.checked = selectedTitles.includes(algorithm.title);
+					        });
+				this.selectedAlgorithms = []
+				for(let i  = 0; i < this.alglist.length; i++){
+					if(this.alglist[i].checked){
+						this.selectedAlgorithms.push(this.alglist[i].title)
+					}
+				}
+					console.log(this.selectedAlgorithms,this.alglist)
+			},
+			toggleSelectAll() {
+					  var tmpalglist = this.alglist.filter(algorithm => algorithm.operation === this.activeOperation)
+					  const allChecked = tmpalglist.every(algorithm => algorithm.checked);
+					        tmpalglist.forEach(algorithm => {
+					          algorithm.checked = !allChecked;
+					        });
+			      if (this.selectedAlgorithms.length === tmpalglist.length) {
+			        // 如果所有项都被选中，则取消全选
+			        this.selectedAlgorithms = [];
+			      } else {
+			        // 否则，全选所有项
+			        this.selectedAlgorithms = tmpalglist.map(algorithm => algorithm.title);
+			      }
+						console.log(this.selectedAlgorithms)
+			    },
+				uploadFiles(){
+					console.log(this.selectedAlgorithms,this.activeOperation);
+					let newPath = this.currentPath ? `${this.currentPath}/${this.selectedFolderName}` : this.selectedFolderName;
+					uploadFolders(newPath,this.activeOperation,this.selectedAlgorithms).then(res=>{
+						console.log(res)
+						if(res.data.code=='401'){
+							uni.showToast({
+								title:res.data.msg,
+								icon:'none',
+								duration:2000,
+								mask:true
+							})
+						}
+					})
+					
+				},
     handleSidebarItemClick(item) {
       // 处理侧边栏菜单项点击事件
       console.log('点击了菜单项:', item);
@@ -134,6 +214,24 @@ export default {
 	  	url:item.url
 	  })
     },
+	processFolderContent(folderName,operation) {
+	      // 处理指定文件夹下的内容
+	      // 这里可以调用后端API或者进行其他操作
+		  this.showDropdown = true;
+		  this.selectedFolderName = folderName;
+	      console.log(`处理文件夹：${folderName}`);
+	      // 例如，你可以在这里调用一个方法来获取文件夹内容并处理
+		  this.activeOperation = operation;
+	    },
+		closeDropdown() {
+		    this.showDropdown = false;
+			this.selectedAlgorithms = [];
+			var tmpalglist = this.alglist.filter(algorithm => algorithm.operation === this.activeOperation)
+			const allChecked = tmpalglist.every(algorithm => algorithm.checked);
+			      tmpalglist.forEach(algorithm => {
+			        algorithm.checked = false;
+			      });
+		  },
 	getEntryUrl(entry) {
 		getImage(entry.name).then(res=>{
 			console.log(res)
@@ -219,7 +317,7 @@ export default {
   /* align-items: center; */
   /* height: 500px; */
   justify-content: flex-start;
-  overflow-y: hidden;
+  /* overflow-y: hidden; */
 }
 
 
@@ -283,10 +381,12 @@ export default {
   /* min-height: 100px; */
   object-fit: contain;
   text-align: center;
+  overflow: visible;
 }
 .entry-content{
 	height: 100%;
 	width: 100%;
+	position: relative;
 }
 .entry-image {
   /* height: 50%; */
@@ -320,5 +420,129 @@ export default {
   transition: color 0.3s ease; /* 为标题添加颜色过渡效果 */
   cursor: pointer;
 }
+.process-folder-btn {
+  position: absolute; /* 绝对定位 */
+  top: -8%; /* 右上角对齐 */
+  right: 51%; /* 右上角对齐 */
+  background-color: #008225; /* 科技感的蓝色背景 */
+  color: #ffffff; /* 白色文字 */
+  border: none; /* 无边框 */
+  border-radius: 5px; /* 圆角 */
+  font-size: 1.5vh; /* 文字大小 */
+  cursor: pointer; /* 鼠标指针变为手形 */
+  outline: none; /* 去除焦点时的轮廓线 */
+  transition: background-color 0.3s; /* 背景颜色过渡效果 */
+  font-weight: bolder;
+}
+.process-folder-btn2 {
+  position: absolute; /* 绝对定位 */
+  top: -8%; /* 右上角对齐 */
+  right: 35%; /* 右上角对齐 */
+  background-color: #008225; /* 科技感的蓝色背景 */
+  color: #ffffff; /* 白色文字 */
+  border: none; /* 无边框 */
+  border-radius: 5px; /* 圆角 */
+  font-size: 1.5vh; /* 文字大小 */
+  cursor: pointer; /* 鼠标指针变为手形 */
+  outline: none; /* 去除焦点时的轮廓线 */
+  transition: background-color 0.3s; /* 背景颜色过渡效果 */
+  font-weight: bolder;
+}
+.dropdown-popup {
+  position: absolute;
+  width: 100%;
+  bottom: -6%;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
 
+/* 下拉选择框内容样式 */
+.dropdown-content {
+  background-color: #fff;
+  padding: 20px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+}
+	.dropdown-content ::-webkit-scrollbar {
+	  display: none; /* Chrome, Safari, Edge (基于Chromium的版本) */
+	}
+/* 取消按钮样式 */
+.cancel-button {
+  background-color: transparent;
+  color: #008225;
+  border: none;
+  padding: 10px;
+  text-align: left;
+  width: 100%;
+}
+/* 复选框标签样式 */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 上传按钮标签样式，确保与复选框标签对齐 */
+.upload-button-label {
+  display: block;
+  margin: 10px 0;
+}
+
+/* 上传按钮样式 */
+.upload-button {
+  background-color: #008225;
+  color: #fff;
+  border: none;
+  padding: 5px;
+  border-radius: 10px;
+  width: 100%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #009000;
+}
+
+/* 全选按钮样式 */
+.select-all-button {
+  background-color: #008225;
+  color: #fff;
+  border: none;
+  padding: 5px;
+  border-radius: 10px;
+  width: 100%;
+  margin-top: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.select-all-button:hover {
+  background-color: #009000;
+}
+
+/* 动画效果 */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0%);
+  }
+}
+.process-folder-btn:hover {
+  background-color: #009000; /* 鼠标悬停时背景颜色变深 */
+}
 </style>

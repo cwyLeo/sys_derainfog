@@ -1,0 +1,13 @@
+{
+  "hash": "01aa2fd9",
+  "browserHash": "35427469",
+  "optimized": {
+    "jszip": {
+      "src": "../../node_modules/jszip/dist/jszip.min.js",
+      "file": "jszip.js",
+      "fileHash": "a1c8eb7f",
+      "needsInterop": true
+    }
+  },
+  "chunks": {}
+}

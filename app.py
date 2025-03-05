@@ -649,7 +649,14 @@ def get_folders():
         for entry in entries:
             entry_path = os.path.join(folder_path, entry)
             if os.path.isdir(entry_path):
-                files_and_folders.append({'name': entry, 'type': 'directory', 'url':f'{host_ip}/static/show/box.png'})
+                input_type = ''
+                if 'gt' in os.listdir(entry_path) and 'hazy' in os.listdir(entry_path):
+                    input_type = 'gh'
+                elif 'gt' in os.listdir(entry_path):
+                    input_type = 'g'
+                elif 'hazy' in os.listdir(entry_path):
+                    input_type = 'h'
+                files_and_folders.append({'name': entry, 'type': 'directory', 'url':f'{host_ip}/static/show/box.png','input_type':input_type})
             elif re.findall(r'(jpg|jpeg|png|gif|bmp)',entry.lower()):
                 if mode == '':
                     files_and_folders.append({'name': entry, 'type': 'file', 'url':f'{host_ip}/static/uploads_main/{olds}{entry}'})
@@ -748,6 +755,142 @@ def dehaze(file,path,alg_names,operation):
         outputs,_ = func([file],[path])
         results[mod[:-6]] = outputs[0]
     return results
-    
+
+@app.route('/uploadFolders',methods=['POST'])
+def uploadFolders():
+    folderName = request.form['folder']
+    operation = request.form['operation']
+    alg_names = request.form['name']
+    alg_list = []
+    print(os.path.join(uploadDir,folderName))
+    image_folder = os.path.join(uploadDir,folderName)
+    input_image_list = []
+    uploadpaths = []
+    output_image_list = []
+    pjs = {}
+    keys = {}
+    filenames = []
+    combined_list = {'ori':[]}
+    if os.path.isdir(image_folder):
+        filenames = os.listdir(image_folder)
+        if filenames[0] in ['gt','hazy'] and os.path.isdir(os.path.join(image_folder,filenames[0])):
+            image_folder = os.path.join(image_folder,'hazy')
+            gt_path = os.path.join(image_folder,'gt')
+            filenames = os.listdir(image_folder)
+        else:
+            return jsonify({'code':401,'msg':'invalid folder'})
+    else:
+        filenames = [image_folder]
+    for image_filename in filenames:
+        if os.path.isdir(image_folder):
+            filename = os.path.join(image_folder, image_filename)
+        else:
+            filename = image_filename
+        combined_list['ori'].append(filename)
+        types = ['jpg', 'png', 'tif']
+        if filename.lower().split('.')[-1] in types or os.path.isdir(filename):
+            uploadpath = filename
+            uploadpaths.append(uploadpath)
+            image = cv_imread(uploadpath)
+            input_image_list.append(image)
+            if gt_path != '':
+                filenameGT = secure_filename(os.path.join(gt_path,image_filename))
+                if image_filename in os.listdir(gt_path):
+                        uploadpathGT = filenameGT
+                        imageGT = cv_imread(uploadpathGT)
+                        value_en,value_mg,value_psnr,value_ssim = calculate_metrics(image,imageGT)
+                        value_en_gt,value_mg_gt,value_psnr_gt,value_ssim_gt = calculate_metrics(imageGT,imageGT)
+                        image_list = [
+                            {'name':'origin','filename':filename,'scores':{'PSNR':value_psnr,'SSIM':value_ssim,'MG':value_mg,'Entropy':value_en}},
+                            {'name':'ground_truth','filename':filenameGT,'scores':{'PSNR':value_psnr_gt,'SSIM':value_ssim_gt,'MG':value_mg_gt,'Entropy':value_en_gt}}
+                        ]
+                        entropy = [value_en,value_en_gt]
+                        mg = [value_mg,value_mg_gt]
+                        complexities = [0,0]
+                        time_used = [0,0]
+                        psnr = [value_psnr,value_psnr_gt]
+                        ssim = [value_ssim,value_ssim_gt]
+                        keys = ['ori','gt']
+                        pjs = {'psnr':psnr,'ssim':ssim,'entropy':entropy,'mg':mg,'time_used':time_used,'complexity':complexities}
+                else:
+                        flash('Unknown Types!', 'danger')
+            else:
+                    entropy = [calculate_entropy(image)]
+                    mg = [calculate_mg(image)]
+                    complexities = [0]
+                    time_used = [0]
+                    keys = ['ori']
+                    pjs = {'entropy':entropy,'mg':mg,'time_used':time_used,'complexity':complexities}
+    modules = dir(physical) + dir(deeplearning)
+    # modules = dir(physical)
+    if operation == 'derain':
+        modules = dir(derain_predict)
+    for mod in modules:
+        if mod not in alg_names:
+            continue
+        if re.findall(r'\_image$',mod):
+            combined_list[mod] = []
+            if operation == 'defog':
+                if mod in dir(physical):
+                    func = getattr(physical,mod)
+                else:
+                    func = getattr(deeplearning,mod)
+                    # continue
+                    a = 1
+            else:
+                func = getattr(derain_predict,mod)
+            print(mod)
+            time_begin = time.time()
+            if mod == 'SDA_image':
+                outputs,complexity = func(input_image_list,image_folder)
+            else:
+                outputs,complexity = func(input_image_list,uploadpaths)
+            output_image_list.append(outputs)
+            time_end = time.time()
+            value_mg = 0
+            value_en = 0
+            value_psnr = 0
+            value_ssim = 0
+            for index,output in enumerate(outputs):
+                tmp = filenames[index].split('.')[0].split('\\')[-1]
+                tmp2 = filenames[index].split('.')[-1]
+                filename2 = f'{tmp}_{mod}.{tmp2}'
+                deep_path = os.path.join(reusltDir,filename2)
+                if torch.is_tensor(output):
+                    torchvision.utils.save_image(output,deep_path)
+                else:
+                    with open(deep_path,'wb') as f:
+                        tmp3 = filenames[index].split('.')[-1]
+                        f.write(cv2.imencode(f'.{tmp3}',output)[1].tobytes())
+                output = cv_imread(deep_path)
+                combined_list[mod].append(deep_path)
+                value_mg += calculate_mg(output)
+                value_en += calculate_entropy(output)
+                if gt_path != '':
+                    value_psnr += calculate_psnr(imageGT,output)
+                    value_ssim += calculate_ssim(imageGT,output)
+            pjs['entropy'].append(value_en/len(outputs))
+            pjs['mg'].append(value_mg/len(outputs))
+            pjs['complexity'].append(complexity)
+            pjs['time_used'].append(round(time_end - time_begin,3))
+            if gt_path != '':
+                pjs['psnr'].append(value_psnr/len(outputs))
+                pjs['ssim'].append(value_ssim/len(outputs))
+            keys.append(mod)
+            alg_list.append(re.split(r'_image',mod)[0])
+    path_list = []
+    for key,value in pjs.items():
+        plt.figure(figsize=(15, 5))  # 设置图表大小
+        plt.plot(keys, value, marker='o')  # 使用点标记每个数据点
+        plt.xticks(fontsize=14)
+        plt.xlabel('Keys')  # x轴标签
+        plt.ylabel('Values')  # y轴标签
+        plt.title(key,fontsize=16)  # 图表标题
+        plt.grid(True)  # 显示网格
+        plt.savefig(os.path.join(reusltDir,f'{key}.png'), dpi=720, bbox_inches='tight')
+        path_list.append(os.path.join(reusltDir,f'{key}.png'))
+
+    return path_list,pjs,combined_list
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000,debug=True)

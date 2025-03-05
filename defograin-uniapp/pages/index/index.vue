@@ -57,6 +57,7 @@
 </template>
 
 <script>
+	import JSZip from 'jszip'
 	import {uploadImage,getAlg} from '../../util/api.js'
 export default {
 	data() {

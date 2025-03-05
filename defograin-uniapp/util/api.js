@@ -30,6 +30,17 @@ export const uploadImage = (filepath,alg_names,activeOperation) =>{
 		}
 	})
 }
+export const uploadFolders = (folder, operation, alg_names) => {
+	return $request({
+		url:'uploadFolders',
+		data:{
+			folder:folder,
+			operation:operation,
+			name:alg_names
+		},
+		method:'POST'
+	})
+}
 
 export const getFolders = (path,mode) =>{
 	return $request({
