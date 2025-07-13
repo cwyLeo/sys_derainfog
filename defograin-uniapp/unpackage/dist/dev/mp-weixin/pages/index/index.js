@@ -12,13 +12,72 @@ const _sfc_main = {
         { title: "算法库", url: "../alglist/alglist", active: false },
         { title: "运行结果", url: "../result/result", active: false }
       ],
+      activeOperation: "derain",
       imageUrl: "",
       pb_imgs: [],
       tr_imgs: [],
-      result: ""
+      result: "",
+      alglist: [
+        { value: "algorithm1", text: "算法1" },
+        { value: "algorithm2", text: "算法2" }
+        // 更多算法选项...
+      ],
+      selectedAlgorithms: [],
+      multi: []
     };
   },
+  onLoad() {
+    util_api.getAlg().then((res) => {
+      console.log(res);
+      this.alglist = res.data.algs;
+      for (var i = 0; i < this.alglist.length; i++) {
+        this.alglist[i].checked = false;
+      }
+      console.log(this.alglist);
+    });
+  },
+  computed: {
+    // 计算属性，根据alglist的状态返回相应的按钮文字
+    selectAllText() {
+      const allChecked = this.alglist.filter((algorithm) => algorithm.operation === this.activeOperation).every((algorithm) => algorithm.checked);
+      return allChecked ? "取消全选" : "全选";
+    },
+    filteredAlgList() {
+      return this.alglist.filter((algorithm) => algorithm.operation === this.activeOperation);
+    }
+  },
   methods: {
+    setOperation(operation) {
+      this.activeOperation = operation;
+      this.selectedAlgorithms = [];
+      this.alglist.forEach((algorithm) => algorithm.checked = false);
+    },
+    selectalg(e) {
+      const selectedTitles = e.detail.value;
+      this.alglist.forEach((algorithm) => {
+        algorithm.checked = selectedTitles.includes(algorithm.title);
+      });
+      this.selectedAlgorithms = [];
+      for (let i = 0; i < this.alglist.length; i++) {
+        if (this.alglist[i].checked) {
+          this.selectedAlgorithms.push(this.alglist[i].title);
+        }
+      }
+      console.log(this.selectedAlgorithms, this.alglist);
+    },
+    toggleSelectAll() {
+      var tmpalglist = this.alglist.filter((algorithm) => algorithm.operation === this.activeOperation);
+      const allChecked = tmpalglist.every((algorithm) => algorithm.checked);
+      tmpalglist.forEach((algorithm) => {
+        algorithm.checked = !allChecked;
+      });
+      if (this.selectedAlgorithms.length === tmpalglist.length) {
+        this.selectedAlgorithms = [];
+      } else {
+        this.selectedAlgorithms = tmpalglist.map((algorithm) => algorithm.title);
+      }
+      console.log(this.selectedAlgorithms);
+    },
     handleSidebarItemClick(item) {
       console.log("点击了菜单项:", item);
       common_vendor.index.navigateTo({
@@ -71,15 +130,16 @@ const _sfc_main = {
     },
     //上传图片
     upload(imagePath) {
-      return util_api.uploadImage(imagePath).then((res1) => {
+      return util_api.uploadImage(imagePath, this.selectedAlgorithms, this.activeOperation).then((res1) => {
         console.log("上传操作", res1);
         if (res1.code != 200) {
           console.log("图片", imagePath, "上传失败");
           return false;
         }
         this.result = res1.file_url;
-        common_vendor.index.navigateTo({
-          url: "../result/result?files=" + encodeURIComponent(JSON.stringify(res1.file_urls))
+        getApp().globalData.result_url = encodeURIComponent(JSON.stringify(res1.folder_name));
+        common_vendor.index.switchTab({
+          url: "../result/result"
         });
         return res1.file_url;
       });
@@ -95,30 +155,43 @@ if (!Math) {
   _easycom_htz_image_upload();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
-  return common_vendor.e({
-    a: common_vendor.o($options.chooseSuccess),
-    b: common_vendor.o($options.imgDelete),
-    c: common_vendor.o(($event) => $data.pb_imgs = $event),
-    d: common_vendor.p({
+  return {
+    a: $data.activeOperation === "derain" ? 1 : "",
+    b: common_vendor.o(($event) => $options.setOperation("derain")),
+    c: $data.activeOperation === "defog" ? 1 : "",
+    d: common_vendor.o(($event) => $options.setOperation("defog")),
+    e: common_vendor.t($options.selectAllText),
+    f: common_vendor.o((...args) => $options.toggleSelectAll && $options.toggleSelectAll(...args)),
+    g: common_vendor.f($options.filteredAlgList, (algorithm, k0, i0) => {
+      return {
+        a: algorithm.title,
+        b: algorithm.checked,
+        c: algorithm.checked ? 1 : "",
+        d: common_vendor.t(algorithm.title),
+        e: algorithm.title
+      };
+    }),
+    h: common_vendor.o((...args) => $options.selectalg && $options.selectalg(...args)),
+    i: common_vendor.o($options.chooseSuccess),
+    j: common_vendor.o($options.imgDelete),
+    k: common_vendor.o(($event) => $data.pb_imgs = $event),
+    l: common_vendor.p({
       max: 9,
       chooseNum: 9,
       value: $data.pb_imgs,
       modelValue: $data.pb_imgs
     }),
-    e: common_vendor.o($options.chooseSuccessTr),
-    f: common_vendor.o($options.imgDeleteTr),
-    g: common_vendor.o(($event) => $data.tr_imgs = $event),
-    h: common_vendor.p({
+    m: common_vendor.o($options.chooseSuccessTr),
+    n: common_vendor.o($options.imgDeleteTr),
+    o: common_vendor.o(($event) => $data.tr_imgs = $event),
+    p: common_vendor.p({
       max: 9,
       chooseNum: 9,
       value: $data.tr_imgs,
       modelValue: $data.tr_imgs
     }),
-    i: common_vendor.o((...args) => $options.uploadImgs && $options.uploadImgs(...args)),
-    j: $data.result != ""
-  }, $data.result != "" ? {
-    k: $data.result
-  } : {});
+    q: common_vendor.o((...args) => $options.uploadImgs && $options.uploadImgs(...args))
+  };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "D:/cwy/college/study/shuoshi/lab/system/sys_derainfog/defograin-uniapp/pages/index/index.vue"]]);
 wx.createPage(MiniProgramPage);

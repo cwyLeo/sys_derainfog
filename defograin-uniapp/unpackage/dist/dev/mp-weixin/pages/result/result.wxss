@@ -1,30 +1,120 @@
 
+.result {
+  display: flex;
+  margin-left: min(300px,45%); /* 为固定侧边栏腾出空间 */
+}
+.side-folder {
+	  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+	  padding: 20px;
+	  border-radius: 10px;
+	  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	  color: #fff;
+	  width: min(250px,40%); /* 根据需要调整宽度 */
+	  height: 100%; /* 根据需要调整高度 */
+	  max-height: 60vh;
+	  overflow-y: auto; /* 如果内容过多，允许滚动 */
+	  position: fixed; /* 使侧边栏固定 */
+	  top: 150px; /* 顶部对齐 */
+	  left: 0; /* 左侧对齐 */
+}
+.side-folder ::-webkit-scrollbar {
+	  display: none; /* Chrome, Safari, Edge (基于Chromium的版本) */
+}
+	/* 针对旧版Edge和IE */
+.side-folder {
+	  -ms-overflow-style: none; /* IE 10+ 和旧版Edge */
+}
+.side-folder button {
+  background-color: #555;
+  color: white;
+  padding: 2% 16%;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* 添加样式以使按钮左右贴合 */
+.side-folder .button-container {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 5%; /* 在按钮和内容之间添加一些空间 */
+}
+button {
+  padding: 10px 20px;
+  border: none;
+  background-image: linear-gradient(to right, #0f0f0f, #313131);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 25px;
+  cursor: pointer;
+  outline: none;
+  transition: background-image 0.3s, transform 0.1s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+button:hover {
+  background-image: linear-gradient(to right, #313131, #0f0f0f);
+  transform: translateY(-2px);
+}
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+/* 特定于去雨和去雾按钮的样式 */
+#goRain, #goFog {
+  flex-grow: 1; /* 允许按钮扩展以填满可用空间 */
+}
+.folder-item {
+	  padding: 10px;
+	  margin: 5px 0;
+	  border-radius: 5px;
+	  background-color: rgba(255, 255, 255, 0.1);
+	  color: #e4e4e4;
+	  text-align: center;
+	  transition: background-color 0.3s ease;
+}
+.folder-item.selected {
+	  /* 高亮显示的文件夹样式 */
+	  background-color: #007bff; /* 高亮背景色 */
+	  color: white; /* 高亮文字颜色 */
+	  /* 其他高亮样式 */
+}
+.folder-item:hover {
+	  background-color: rgba(255, 255, 255, 0.2);
+	  cursor: pointer;
+}
+.content{
+		flex-grow: 1;
+		padding-left: 20px;
+}
 .image-gallery {
 	  display: flex;
 	  flex-wrap: wrap;
-	  justify-content: space-between;
-	  height: 300px;
+	  justify-content: flex-start;
+	  height: 30vh;
 }
 .image-item {
-	  width: 18%; /* 设置每张图片的宽度，18% * 5 = 90%，留下10%的间隙 */
-	  margin-bottom: 50px; /* 图片之间的垂直间距 */
-	  text-align: center;
+  width: 18%; /* 设置每张图片的宽度，18% * 5 = 90%，留下10%的间隙 */
+  margin-bottom: 50px; /* 图片之间的垂直间距 */
+  margin-right: 20px;
+  text-align: center;
 }
 .image {
-	  width: 100%;
-	  height: 100%;
-	  display: block;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 .title {
-	  display: block; /* 将标题设置为块级元素，以便可以设置宽度 */
-	  width: 100%; /* 标题宽度与图片相同 */
-	  margin-top: 8px; /* 标题与图片的间距 */
-	  text-align: center; /* 标题居中 */
-	  color: #333; /* 标题颜色 */
-	  text-decoration: none; /* 移除链接的下划线 */
-	  font-size: 16px; /* 设置标题字体大小 */
-	  transition: color 0.3s ease; /* 为标题添加颜色过渡效果 */
+  display: block; /* 将标题设置为块级元素，以便可以设置宽度 */
+  width: 100%; /* 标题宽度与图片相同 */
+  margin-top: 8px; /* 标题与图片的间距 */
+  text-align: center; /* 标题居中 */
+  color: #333; /* 标题颜色 */
+  text-decoration: none; /* 移除链接的下划线 */
+  font-size: 16px; /* 设置标题字体大小 */
+  transition: color 0.3s ease; /* 为标题添加颜色过渡效果 */
 }
 .title:hover {
-	  color: #007aff; /* 鼠标悬停时标题颜色变化 */
+  color: #007aff; /* 鼠标悬停时标题颜色变化 */
 }

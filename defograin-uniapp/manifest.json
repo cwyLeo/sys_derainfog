@@ -71,6 +71,9 @@
     "h5" : {
         "env" : {
             "VUE_APP_SERVER_URL" : "http://127.0.0.1:5000/"
+        },
+        "router" : {
+            "base" : "./"
         }
     },
     "uniStatistics" : {

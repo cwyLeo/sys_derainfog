@@ -6,8 +6,129 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  align-items: center;
+}
+.operation-options {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.operation-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  background-color: white; /* 主题色 */
+  color: #005825;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+.operation-btn.is-active {
+  background-color: #005825; /* 选中时的颜色 */
+  color: white; /* 文字颜色与主题色相反 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* 更深的阴影效果 */
+}
+.operation-btn:hover:not(.is-active) {
+  background-color: #00832a; /* 按钮悬停时的颜色 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 加强阴影效果 */
+  color: white;
+}
+/* 基础样式 */
+.dropdown-select {
+  display: flex; /* 使用 Flexbox 布局 */
+  flex-direction: row; /* 子元素按行排列 */
+  align-items: center; /* 垂直居中对齐 */
+}
+.dropdown-select {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 对齐到容器的起始位置 */
+}
+.select-button {
+  padding: 2px 10px; /* 内边距 */
+  margin-bottom: 10px;
+  font-size: 16px; /* 字体大小 */
+  color: #fff; /* 文字颜色 */
+  text-align: center; /* 文字居中 */
+  text-decoration: none; /* 去除下划线 */
+  display: inline-block; /* 行内块元素 */
+  white-space: nowrap; /* 防止文本换行 */
+  overflow: hidden; /* 超出部分隐藏 */
+  text-overflow: ellipsis; /* 超出部分显示省略号 */
+  border: none; /* 无边框 */
+  border-radius: 25px; /* 圆角边框 */
+  background-image: linear-gradient(to right, #003214, #005825); /* 渐变背景 */
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); /* 阴影效果 */
+  cursor: pointer; /* 鼠标样式 */
+  transition: all 0.3s ease; /* 过渡效果 */
+}
+.select-button:hover {
+  background-image: linear-gradient(to right, #003214, #005825); /* 鼠标悬停时的渐变背景 */
+  transform: translateY(-3px); /* 鼠标悬停时的轻微上移效果 */
+  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2), 0 8px 24px 0 rgba(0, 0, 0, 0.19); /* 鼠标悬停时的阴影效果 */
+}
+.select-button:active {
+  transform: translateY(0); /* 点击时的效果，取消上移 */
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 4px 8px 0 rgba(0, 0, 0, 0.19); /* 点击时的阴影效果 */
+}
+.checkbox-label {
+  display: flex;
+  align-items: center; /* 垂直居中对齐复选框和文字 */
+  margin-bottom: 5px; /* 在每个复选框之间添加一些间距 */
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin: 8px 0;
 }
 
+/* 隐藏原生的 checkbox */
+.checkbox-label checkbox {
+  display: none;
+}
+
+/* 创建自定义的 checkbox 样式 */
+.checkbox-label .checkbox-custom {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+/* 选中状态下的 checkbox 样式 */
+.checkbox-label checkbox.is-checked + .checkbox-custom {
+  background-color: #005825;
+}
+
+/* 添加勾选图标 */
+.checkbox-label checkbox.is-checked + .checkbox-custom::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 8px;
+  height: 14px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* 文本样式 */
+.checkbox-label text {
+  margin-left: 8px;
+  font-size: 16px;
+  color: #4c4c4c;
+}
+
+/* 交互效果 */
+.checkbox-label:hover .checkbox-custom {
+  background-color: #999;
+}
 /* 图像上传列容器 */
 .image-upload-columns {
   display: flex;
@@ -15,7 +136,7 @@
   width: 100%;
   max-width: 1200px; /* 根据需要调整最大宽度 */
   margin-bottom: 40px; /* 按钮与上传区域之间的间距 */
-  background: linear-gradient(to right, #4c4c4c, #333); /* 背景渐变 */
+  background: linear-gradient(to right, #99ef99, #005825); /* 背景渐变 */
   padding: 3%;
   border-radius: 10px; /* 圆角边框 */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 更深的阴影效果 */
@@ -28,9 +149,9 @@
   align-items: center;
   width: 45%; /* 减少宽度，为间距留出更多空间 */
   margin: 0 2%; /* 添加左右外边距 */
-  border: 1px solid rgba(255, 255, 255, 0.2); /* 边框颜色调整 */
+  border: 1px solid rgba(0, 130, 37, 0.2); /* 边框颜色调整 */
   padding: 1%;
-  background: rgba(255, 255, 255, 0.1); /* 透明背景 */
+  background: rgba(0, 130, 37, 0.1); /* 透明背景 */
   -webkit-backdrop-filter: blur(10px);
           backdrop-filter: blur(10px); /* 背景模糊效果 */
   border-radius: 8px; /* 圆角边框 */
@@ -38,7 +159,7 @@
 }
 .image-upload-column:hover {
   transform: translateY(-5px); /* 鼠标悬停时轻微上移 */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
+  box-shadow: 0 10px 20px  rgba(0, 130, 37, 0.3); /* 鼠标悬停时加深阴影 */
 }
 
 
@@ -47,6 +168,8 @@
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
+  color: #ffffff; 
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* 上传按钮样式 */
@@ -55,7 +178,7 @@
   padding: 15px; /* 增加内边距 */
   font-size: 16px;
   color: #fff;
-  background-image: linear-gradient(to right, #1e3c72, #2a5298); /* 渐变背景 */
+  background-image: linear-gradient(to right, #003214, #005825); /* 渐变背景 */
   border: none;
   border-radius: 8px; /* 更大的圆角 */
   cursor: pointer;
@@ -66,10 +189,14 @@
 .upload-btn:hover {
   transform: translateY(-3px); /* 鼠标悬停时轻微上移 */
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深阴影 */
-  background-image: linear-gradient(to right, #2a5298, #1e3c72); /* 鼠标悬停时渐变反向 */
+  background-image: linear-gradient(to right, #005825, #003214); /* 鼠标悬停时渐变反向 */
 }
 .upload-btn:active {
   transform: translateY(0); /* 点击时无上移效果 */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 点击时减少阴影效果 */
 }
+.result{
+	width: 80vw;
+}
+
 

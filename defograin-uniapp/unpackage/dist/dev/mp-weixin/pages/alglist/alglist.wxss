@@ -1,13 +1,40 @@
 
+.operation-options {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.operation-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  background-color: white; /* 主题色 */
+  color: #005825;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+.operation-btn.is-active {
+  background-color: #005825; /* 选中时的颜色 */
+  color: white; /* 文字颜色与主题色相反 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* 更深的阴影效果 */
+}
+.operation-btn:hover:not(.is-active) {
+  background-color: #00832a; /* 按钮悬停时的颜色 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 加强阴影效果 */
+  color: white;
+}
 .image-gallery {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  height: 300px;
+  justify-content: flex-start;
+  height: 500px;
 }
 .image-item {
   width: 18%; /* 设置每张图片的宽度，18% * 5 = 90%，留下10%的间隙 */
   margin-bottom: 50px; /* 图片之间的垂直间距 */
+  margin-right: 20px;
   text-align: center;
 }
 .image {

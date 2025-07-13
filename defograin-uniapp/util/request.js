@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5000/"
+const BASE_URL = "http://172.19.84.207:5000/"
 // 网络请求
 function request(options) {
     return new Promise((res,rej) =>{
@@ -12,7 +12,7 @@ function request(options) {
 				'content-type': 'application/x-www-form-urlencoded',
 				...options.header
 			},
-			timeout: options.timeout || 5000,
+			timeout: options.timeout || 30000,
 			dataType: options.dataType || 'json',
 			responseType: options.responseType || 'text',
 			sslVerify: options.sslVerify || true,

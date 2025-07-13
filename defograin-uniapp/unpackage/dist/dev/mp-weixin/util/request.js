@@ -13,7 +13,7 @@ function request(options) {
         "content-type": "application/x-www-form-urlencoded",
         ...options.header
       },
-      timeout: options.timeout || 5e3,
+      timeout: options.timeout || 3e4,
       dataType: options.dataType || "json",
       responseType: options.responseType || "text",
       sslVerify: options.sslVerify || true,

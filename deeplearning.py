@@ -14,6 +14,7 @@ from testdata_process.misc import *
 from testdata_process.image_dataset import TestDataset
 from torch.utils.data import DataLoader
 import re
+from tqdm import tqdm
 from model import *
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -319,4 +320,31 @@ def FFA_image(images,a):
             pred = net(haze1)
         ts=torch.squeeze(pred.clamp(0,1).cpu())
         results.append(ts)
+    return results,total_params
+
+from EMA_model import Teacher, Student, Student_x
+MODEL_PATH = 'EMA_model/EMA_model/EMA_r.pth'
+def CoA_image(images,a):
+    transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711))])
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    results = []
+    # model = Teacher().to(device)
+    # model = Student().to(device)
+    model = Student_x().to(device)
+
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    model.eval()
+    total_params = sum(p.numel() for p in model.parameters())
+    bar_format = "{l_bar}{bar}| {n_fmt}/{total_fmt} | Elapsed: {elapsed} | Rate: {rate_fmt} items/sec"
+    with torch.no_grad():
+        for image_path in tqdm(a, bar_format=bar_format, desc="Models are struggling to get out of the fog 😊 :"):
+            haze = transform(Image.open(image_path).convert("RGB")).unsqueeze(0).to(device)
+            h, w = haze.shape[2], haze.shape[3]
+            haze = transforms.Resize((h // 16 * 16, w // 16 * 16), interpolation=transforms.InterpolationMode.BICUBIC, antialias=True)(haze)
+            out = model(haze)[0].squeeze(0)
+            out = transforms.Resize((h, w), interpolation=transforms.InterpolationMode.BICUBIC, antialias=True)(out)
+            results.append(out)
     return results,total_params

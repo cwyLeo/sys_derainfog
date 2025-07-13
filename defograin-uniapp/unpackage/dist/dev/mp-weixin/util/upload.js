@@ -7,6 +7,7 @@ function upload(options) {
       url: BASE_URL + options.url,
       filePath: options.filePath,
       name: options.name,
+      formData: options.data,
       success(da) {
         console.log(da);
         res(JSON.parse(da.data));

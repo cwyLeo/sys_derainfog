@@ -60,7 +60,7 @@
 </template>
  
 <script>
-	import {getFolders,getImage,download2,getAlg,uploadFolders} from '../../util/api.js'
+	import {getFolders,getImage,download2,getAlg,uploadFolders, download} from '../../util/api.js'
 export default {
   data() {
     return {
@@ -82,7 +82,8 @@ export default {
 	  activeOperation: 'derain',
 	  selectedAlgorithms: [],
 	  showDropdown:false,
-	  selectedFolderName:''
+	  selectedFolderName:'',
+	  finish:false
     };
   },
   onMounted() {
@@ -191,22 +192,7 @@ export default {
 			      }
 						console.log(this.selectedAlgorithms)
 			    },
-				uploadFiles(){
-					console.log(this.selectedAlgorithms,this.activeOperation);
-					let newPath = this.currentPath ? `${this.currentPath}/${this.selectedFolderName}` : this.selectedFolderName;
-					uploadFolders(newPath,this.activeOperation,this.selectedAlgorithms).then(res=>{
-						console.log(res)
-						if(res.data.code=='401'){
-							uni.showToast({
-								title:res.data.msg,
-								icon:'none',
-								duration:2000,
-								mask:true
-							})
-						}
-					})
-					
-				},
+
     handleSidebarItemClick(item) {
       // 处理侧边栏菜单项点击事件
       console.log('点击了菜单项:', item);
@@ -239,7 +225,6 @@ export default {
 		})
 	    },
 	fetchFilesAndFolders(path) {
-		console.log(process.env.VUE_APP_SERVER_URL)
 	      getFolders(path,'').then(res=>{
 			  this.filesAndFolders = res.data
 			  this.entries = res.data
@@ -293,7 +278,25 @@ export default {
 		    .catch(error => {
 		      console.error('There was a problem with the fetch operation:', error);
 		    });
-		}
+		},
+		uploadFiles(){
+			console.log(this.selectedAlgorithms,this.activeOperation);
+			let newPath = this.currentPath ? `${this.currentPath}/${this.selectedFolderName}` : this.selectedFolderName;
+			uploadFolders(newPath,this.activeOperation,this.selectedAlgorithms).then(res=>{
+				console.log(res)
+				if(res.data.code=='401'){
+					uni.showToast({
+						title:res.data.msg,
+						icon:'none',
+						duration:2000,
+						mask:true
+					})
+				}else{
+					this.downloadFile(res.data.url,res.data.name)
+				}
+			})
+			
+		},
       }
 };
 </script>

@@ -282,7 +282,6 @@ export default {
 }
 
 .select-button {
-  width: 100px; /* 固定宽度 */
   padding: 2px 10px; /* 内边距 */
   margin-bottom: 10px;
   font-size: 16px; /* 字体大小 */
@@ -389,7 +388,7 @@ export default {
   align-items: center;
   width: 45%; /* 减少宽度，为间距留出更多空间 */
   margin: 0 2%; /* 添加左右外边距 */
-  border: 1px solid rgba(0, 130, 37, 0.2);; /* 边框颜色调整 */
+  border: 1px solid rgba(0, 130, 37, 0.2); /* 边框颜色调整 */
   padding: 1%;
   background: rgba(0, 130, 37, 0.1); /* 透明背景 */
   backdrop-filter: blur(10px); /* 背景模糊效果 */
@@ -440,4 +439,6 @@ export default {
 .result{
 	width: 80vw;
 }
+
+
 </style>

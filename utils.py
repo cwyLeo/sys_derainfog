@@ -369,3 +369,17 @@ def pad_img(x, patch_size):
     mod_pad_w = (patch_size - w % patch_size) % patch_size
     x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h), 'reflect')
     return x
+
+def check_image_in_folder(folder_path, image_name_with_extension):
+    # 分离图片名称和后缀
+    image_name, _ = os.path.splitext(image_name_with_extension)
+    # 支持的图片格式
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff']
+    # 获取文件夹内所有文件的列表
+    files_in_folder = os.listdir(folder_path)
+    # 检查是否存在相同名称但不同后缀的图片
+    for file in files_in_folder:
+        file_name, file_extension = os.path.splitext(file)
+        if file_name == image_name and file_extension.lower() in image_extensions:
+            return file
+    return False

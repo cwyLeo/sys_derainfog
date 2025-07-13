@@ -763,7 +763,7 @@ def uploadFolders():
     alg_names = request.form['name']
     alg_list = []
     print(os.path.join(uploadDir,folderName))
-    image_folder = os.path.join(uploadDir,folderName)
+    image_folder = os.path.join(uploadDir,folderName).replace('\\', '/')
     input_image_list = []
     uploadpaths = []
     output_image_list = []
@@ -774,28 +774,30 @@ def uploadFolders():
     if os.path.isdir(image_folder):
         filenames = os.listdir(image_folder)
         if filenames[0] in ['gt','hazy'] and os.path.isdir(os.path.join(image_folder,filenames[0])):
-            image_folder = os.path.join(image_folder,'hazy')
-            gt_path = os.path.join(image_folder,'gt')
-            filenames = os.listdir(image_folder)
+            hazy_path = os.path.join(image_folder,'hazy').replace('\\', '/')
+            gt_path = os.path.join(image_folder,'gt').replace('\\', '/')
+            filenames = os.listdir(hazy_path)
         else:
             return jsonify({'code':401,'msg':'invalid folder'})
     else:
         filenames = [image_folder]
     for image_filename in filenames:
-        if os.path.isdir(image_folder):
-            filename = os.path.join(image_folder, image_filename)
+        if os.path.isdir(hazy_path):
+            filename = os.path.join(hazy_path, image_filename)
         else:
             filename = image_filename
         combined_list['ori'].append(filename)
         types = ['jpg', 'png', 'tif']
+        print(filename.lower().split('.')[-1])
         if filename.lower().split('.')[-1] in types or os.path.isdir(filename):
             uploadpath = filename
             uploadpaths.append(uploadpath)
             image = cv_imread(uploadpath)
             input_image_list.append(image)
             if gt_path != '':
-                filenameGT = secure_filename(os.path.join(gt_path,image_filename))
-                if image_filename in os.listdir(gt_path):
+                tmp_name = check_image_in_folder(gt_path,image_filename)
+                if tmp_name:
+                        filenameGT = os.path.join(gt_path,tmp_name)
                         uploadpathGT = filenameGT
                         imageGT = cv_imread(uploadpathGT)
                         value_en,value_mg,value_psnr,value_ssim = calculate_metrics(image,imageGT)
@@ -826,7 +828,8 @@ def uploadFolders():
     if operation == 'derain':
         modules = dir(derain_predict)
     for mod in modules:
-        if mod not in alg_names:
+        if mod[:-6] not in alg_names:
+            print(mod[:-6])
             continue
         if re.findall(r'\_image$',mod):
             combined_list[mod] = []
@@ -879,8 +882,8 @@ def uploadFolders():
             keys.append(mod)
             alg_list.append(re.split(r'_image',mod)[0])
     path_list = []
+    plt.figure(figsize=(15, 5))  # 设置图表大小
     for key,value in pjs.items():
-        plt.figure(figsize=(15, 5))  # 设置图表大小
         plt.plot(keys, value, marker='o')  # 使用点标记每个数据点
         plt.xticks(fontsize=14)
         plt.xlabel('Keys')  # x轴标签
@@ -889,8 +892,12 @@ def uploadFolders():
         plt.grid(True)  # 显示网格
         plt.savefig(os.path.join(reusltDir,f'{key}.png'), dpi=720, bbox_inches='tight')
         path_list.append(os.path.join(reusltDir,f'{key}.png'))
-
-    return path_list,pjs,combined_list
+        plt.clf()
+    host_ip = request.host_url
+    create_pdf_with_images(a=path_list,b=pjs,combined_list=combined_list,output_filename=f'{operation}_{folderName}_result.pdf')
+    pdf_path = f'static\\uploads_main\\{operation}_{folderName}_result.pdf'
+    # return send_file(pdf_path, as_attachment=True, download_name="f'{operation}_{folderName}_result.pdf'")
+    return jsonify({'code':200,'url':f'{host_ip}\\static\\uploads_main\\{operation}_{folderName}_result.pdf','name':f'{operation}_{folderName}_result.pdf'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000,debug=True)

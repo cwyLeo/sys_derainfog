@@ -76,8 +76,9 @@
 					this.folders = res.data
 					if(getApp().globalData.result_url !=''){
 						this.selectedFolderIndex = this.folders.length - 1;
-						getFolders(this.folders[this.selectedFolderIndex].name,this.currentMode).then(res=>{
+						getFolders('upload_'+this.folders[this.selectedFolderIndex].name,this.currentMode).then(res=>{
 											  this.results = res.data
+											  console.log(this.hasResults)
 						})
 						getApp().globalData.result_url = ''
 					}
@@ -207,7 +208,7 @@
 <style>
 .result {
   display: flex;
-  margin-left: 300px; /* 为固定侧边栏腾出空间 */
+  margin-left: min(300px,45%); /* 为固定侧边栏腾出空间 */
 }
 	.side-folder {
 	  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
@@ -215,7 +216,7 @@
 	  border-radius: 10px;
 	  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 	  color: #fff;
-	  width: 250px; /* 根据需要调整宽度 */
+	  width: min(250px,40%); /* 根据需要调整宽度 */
 	  height: 100%; /* 根据需要调整高度 */
 	  max-height: 60vh;
 	  overflow-y: auto; /* 如果内容过多，允许滚动 */

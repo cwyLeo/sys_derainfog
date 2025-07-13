@@ -26,6 +26,14 @@
 			"style": {
 				
 			}
+		},
+		{
+			"path" : "pages/files/webview",
+			"style" :                                                                                    
+			{
+			    "navigationBarTitleText": "文件预览",
+			    "enablePullDownRefresh": false
+			}
 		}
 	],
 	"globalStyle": {

@@ -2,12 +2,6 @@
 .container {
   padding: 20px;
 }
-.entry-item {
-  margin-bottom: 10px;
-  padding: 10px;
-  background-color: #f8f8f8;
-  border-radius: 5px;
-}
 .main-content.container {
   display: flex;
   flex-direction: column;
@@ -18,29 +12,224 @@
 .entries-container {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start; /* 调整对齐方式 */
+  /* align-items: center; */
+  /* height: 500px; */
+  justify-content: flex-start;
+  /* overflow-y: hidden; */
 }
-.entry-item {
-  margin: 10px;
-}
-.entry-content {
+.pagination-controls {
   display: flex;
-  flex-direction: column; /* 使图片和文本垂直排列 */
-  align-items: center; /* 居中对齐 */
-}
-.entry-image, .directory-icon {
-  width: 100px; /* 设置图片和图标的宽度 */
-  height: 100px; /* 设置图片和图标的高度 */
-  margin-bottom: 5px; /* 在图片和文本之间添加间距 */
-}
-.directory-icon {
-  display: flex;
-  align-items: center;
   justify-content: center;
-  cursor: pointer;
-  background-color: #f0f0f0; /* 添加背景色以便区分 */
+  height: 7vh;
 }
-.entry-name {
-  text-align: center; /* 文件名居中对齐 */
+.pagination-controls button {
+  background-color: #008225; /* 科技感的蓝色 */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pagination-controls button:hover {
+  background-color: #009000; /* 悬停时颜色加深 */
+}
+.pagination-controls button:active {
+  transform: scale(0.9); /* 点击时缩小效果 */
+}
+.pagination-controls button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(120deg, transparent, transparent 50%, rgba(255, 255, 255, 0.1));
+  background-size: 300% 300%;
+  transition: background-position 0.2s ease;
+  pointer-events: none;
+}
+.pagination-controls button:hover::before {
+  background-position: 100% 100%;
 }
 
+/* 翻页按钮禁用时的样式 */
+.pagination-controls button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.entry-item {
+  height: var(--entry-item-height);
+  margin-bottom: 1%;
+  margin-right: 1%;
+  height: 25vh;
+  /* min-width: 10vw; */
+  width: 24%;
+  min-width: 150px;
+  /* min-height: 100px; */
+  object-fit: contain;
+  text-align: center;
+  overflow: visible;
+}
+.entry-content{
+	height: 100%;
+	width: 100%;
+	position: relative;
+}
+.entry-image {
+  /* height: 50%; */
+  /* max-width: 8vw; */
+  /* min-width: 100px; */
+  max-height: 40%;
+  /* height: 100%; */
+  width: 100%;
+  display: block;
+  /* object-fit: contain; */
+  /* margin-bottom: 5px; */
+}
+.directory-icon {
+  /* display: flex; */
+  /* align-items: center; */
+  /* justify-content: center; */
+  cursor: pointer;
+  /* max-height: 100%; */
+  /* background-color: #f0f0f0; */
+}
+.entry-name {
+  display: block; /* 将标题设置为块级元素，以便可以设置宽度 */
+  width: 100%; /* 标题宽度与图片相同 */
+  margin-top: 8px; /* 标题与图片的间距 */
+  text-align: center; /* 标题居中 */
+  color: #333; /* 标题颜色 */
+  text-decoration: none; /* 移除链接的下划线 */
+  font-size: 16px; /* 设置标题字体大小 */
+  transition: color 0.3s ease; /* 为标题添加颜色过渡效果 */
+  cursor: pointer;
+}
+.process-folder-btn {
+  position: absolute; /* 绝对定位 */
+  top: -8%; /* 右上角对齐 */
+  right: 51%; /* 右上角对齐 */
+  background-color: #008225; /* 科技感的蓝色背景 */
+  color: #ffffff; /* 白色文字 */
+  border: none; /* 无边框 */
+  border-radius: 5px; /* 圆角 */
+  font-size: 1.5vh; /* 文字大小 */
+  cursor: pointer; /* 鼠标指针变为手形 */
+  outline: none; /* 去除焦点时的轮廓线 */
+  transition: background-color 0.3s; /* 背景颜色过渡效果 */
+  font-weight: bolder;
+}
+.process-folder-btn2 {
+  position: absolute; /* 绝对定位 */
+  top: -8%; /* 右上角对齐 */
+  right: 35%; /* 右上角对齐 */
+  background-color: #008225; /* 科技感的蓝色背景 */
+  color: #ffffff; /* 白色文字 */
+  border: none; /* 无边框 */
+  border-radius: 5px; /* 圆角 */
+  font-size: 1.5vh; /* 文字大小 */
+  cursor: pointer; /* 鼠标指针变为手形 */
+  outline: none; /* 去除焦点时的轮廓线 */
+  transition: background-color 0.3s; /* 背景颜色过渡效果 */
+  font-weight: bolder;
+}
+.dropdown-popup {
+  position: absolute;
+  width: 100%;
+  bottom: -6%;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+/* 下拉选择框内容样式 */
+.dropdown-content {
+  background-color: #fff;
+  padding: 20px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+}
+.dropdown-content ::-webkit-scrollbar {
+	  display: none; /* Chrome, Safari, Edge (基于Chromium的版本) */
+}
+/* 取消按钮样式 */
+.cancel-button {
+  background-color: transparent;
+  color: #008225;
+  border: none;
+  padding: 10px;
+  text-align: left;
+  width: 100%;
+}
+/* 复选框标签样式 */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 上传按钮标签样式，确保与复选框标签对齐 */
+.upload-button-label {
+  display: block;
+  margin: 10px 0;
+}
+
+/* 上传按钮样式 */
+.upload-button {
+  background-color: #008225;
+  color: #fff;
+  border: none;
+  padding: 5px;
+  border-radius: 10px;
+  width: 100%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+.upload-button:hover {
+  background-color: #009000;
+}
+
+/* 全选按钮样式 */
+.select-all-button {
+  background-color: #008225;
+  color: #fff;
+  border: none;
+  padding: 5px;
+  border-radius: 10px;
+  width: 100%;
+  margin-top: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+.select-all-button:hover {
+  background-color: #009000;
+}
+
+/* 动画效果 */
+@keyframes slideUp {
+from {
+    transform: translateY(100%);
+}
+to {
+    transform: translateY(0%);
+}
+}
+.process-folder-btn:hover {
+  background-color: #009000; /* 鼠标悬停时背景颜色变深 */
+}
